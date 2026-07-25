@@ -1,0 +1,1071 @@
+/* =========================================================================
+   BRUTU'S DELIVERY — app.js
+   -------------------------------------------------------------------------
+   Aplicativo 100% client-side. Sem login, sem cadastro, sem backend.
+   Todo o cardápio vem de /data/menu.json — para atualizar preços, fotos,
+   produtos ou o número de WhatsApp, basta editar esse arquivo.
+
+   Estrutura deste arquivo (procure pelos comentários "SEÇÃO"):
+     1. CONFIG / CONSTANTES
+     2. ESTADO GLOBAL
+     3. UTILITÁRIOS (formatação, storage)
+     4. CARREGAMENTO DO CARDÁPIO (fetch + fallback offline)
+     5. RENDERIZAÇÃO — Home (categorias, produtos, busca)
+     6. MODAL DE PRODUTO (detalhe, adicionais, quantidade)
+     7. CARRINHO (estado, render, edição)
+     8. CHECKOUT (formulário, validação, forma de pagamento)
+     9. MONTAGEM DA MENSAGEM E ENVIO PARA O WHATSAPP
+    10. PWA (service worker)
+    11. INICIALIZAÇÃO
+   ========================================================================= */
+
+(() => {
+  "use strict";
+
+  /* =====================================================================
+     1. CONFIG / CONSTANTES
+     ===================================================================== */
+  const MENU_JSON_URL = "data/menu.json";
+  const CART_STORAGE_KEY = "brutus-delivery:cart:v1";
+
+  // Chave usada apenas para persistir os dados já preenchidos do cliente
+  // (nome, telefone, endereço) para não precisar digitar de novo na próxima
+  // visita. Nada disso é enviado para nenhum servidor — fica só no aparelho.
+  const CUSTOMER_STORAGE_KEY = "brutus-delivery:cliente:v1";
+
+  /* =====================================================================
+     2. ESTADO GLOBAL
+     ===================================================================== */
+  const state = {
+    menu: null,               // conteúdo carregado de menu.json
+    categoriaAtiva: null,     // id da categoria em foco no scroll
+    termoBusca: "",
+    cart: [],                 // itens da sacola (ver shape em addToCart)
+    tipoEntrega: "entrega",   // "entrega" | "retirada"
+    formaPagamento: "PIX",    // "PIX" | "Dinheiro" | "Cartão"
+    produtoEmEdicao: null,    // produto aberto no modal
+    adicionaisSelecionados: new Set(),
+    quantidadeModal: 1,
+  };
+
+  /* =====================================================================
+     3. UTILITÁRIOS
+     ===================================================================== */
+  const $ = (sel, ctx = document) => ctx.querySelector(sel);
+  const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
+
+  function formatarPreco(valor) {
+    return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  // Arredonda para centavos (2 casas decimais) evitando erros clássicos de
+  // ponto flutuante do JavaScript (ex: 77.7 - 6 pode virar 71.69999999999999).
+  // Usado em qualquer comparação/soma de dinheiro que não passe direto pelo
+  // formatarPreco (que já arredonda visualmente, mas não corrige o valor em si).
+  function arredondarMoeda(valor) {
+    return Math.round((valor + Number.EPSILON) * 100) / 100;
+  }
+
+  function parseValorBR(str) {
+    if (!str) return NaN;
+    const limpo = str
+      .replace(/\s/g, "")
+      .replace(/[^\d,.-]/g, "")
+      .replace(/\.(?=\d{3}(,|$))/g, "") // remove pontos de milhar
+      .replace(",", ".");
+    return parseFloat(limpo);
+  }
+
+  function salvarCart() {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state.cart));
+    } catch (e) {
+      console.warn("Não foi possível salvar a sacola localmente:", e);
+    }
+  }
+
+  function carregarCartSalvo() {
+    try {
+      const raw = localStorage.getItem(CART_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function salvarDadosCliente(dados) {
+    try {
+      localStorage.setItem(CUSTOMER_STORAGE_KEY, JSON.stringify(dados));
+    } catch (e) { /* silencioso — recurso de conveniência, não crítico */ }
+  }
+
+  function carregarDadosCliente() {
+    try {
+      const raw = localStorage.getItem(CUSTOMER_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function mostrarToast(mensagem) {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.textContent = mensagem;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 1800);
+  }
+
+  // Gera um identificador único para cada item da sacola. Usar só Date.now()
+  // podia colidir se dois itens fossem adicionados no mesmo milissegundo
+  // (ex: toques rápidos no botão "+"), fazendo remover/alterar quantidade
+  // afetar o item errado. O sufixo aleatório elimina esse risco.
+  function gerarUidItem(produtoId) {
+    return `${produtoId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  }
+
+  function debounce(fn, delay) {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => fn(...args), delay);
+    };
+  }
+
+  function travarScroll(travar) {
+    document.body.style.overflow = travar ? "hidden" : "";
+  }
+
+  // Mede a altura real do cabeçalho e ajusta a variável CSS --header-height,
+  // usada pelo menu de categorias (sticky) para não ficar escondido atrás
+  // do cabeçalho ao rolar a página. Precisa ser refeito depois que a fonte
+  // customizada carrega, porque isso pode mudar a altura do texto.
+  function ajustarOffsetHeader() {
+    const header = $(".app-header");
+    if (!header) return;
+    const altura = Math.ceil(header.getBoundingClientRect().height);
+    document.documentElement.style.setProperty("--header-height", `${altura}px`);
+  }
+
+  /* =====================================================================
+     4. CARREGAMENTO DO CARDÁPIO
+     ===================================================================== */
+  async function carregarMenu() {
+    // MODO TESTE (abrindo o index.html com duplo clique, protocolo file://):
+    // navegadores bloqueiam fetch() de arquivos locais por segurança, então
+    // usamos os dados já carregados pelo <script src="data/menu-data.js">
+    // (variável global window.MENU_DATA). É o mesmo conteúdo do menu.json,
+    // só que embrulhado em JS para poder ser lido sem servidor.
+    if (location.protocol === "file:") {
+      if (window.MENU_DATA) return window.MENU_DATA;
+      throw new Error("menu-data.js não encontrado");
+    }
+
+    // MODO HOSPEDADO (site publicado em http/https): tenta sempre buscar a
+    // versão mais recente de menu.json; se estiver offline, usa a cópia que
+    // o Service Worker guardou no primeiro acesso (ver sw.js). Se tudo isso
+    // falhar, cai para os dados embutidos como último recurso.
+    try {
+      const resp = await fetch(MENU_JSON_URL, { cache: "no-store" });
+      if (!resp.ok) throw new Error("Falha ao buscar menu.json");
+      return await resp.json();
+    } catch (erroRede) {
+      const respCache = await caches?.match?.(MENU_JSON_URL).catch(() => null);
+      if (respCache) {
+        mostrarOfflineBanner(true);
+        return respCache.json();
+      }
+      if (window.MENU_DATA) return window.MENU_DATA;
+      throw erroRede;
+    }
+  }
+
+  function mostrarOfflineBanner(offline) {
+    const banner = $("#offline-indicator");
+    if (banner) banner.classList.toggle("hidden", !offline);
+  }
+
+  /* =====================================================================
+     5. RENDERIZAÇÃO — HOME
+     ===================================================================== */
+  function calcularStatusAberto(horario) {
+    if (!horario) return true; // sem configuração de horário: assume sempre aberto
+
+    const agora = new Date();
+    const diaSemana = agora.getDay(); // 0=domingo ... 6=sábado
+    const diasFechado = horario.diasFechado || [];
+    if (diasFechado.includes(diaSemana)) return false;
+
+    const minutosAgora = agora.getHours() * 60 + agora.getMinutes();
+    const [horaAbre, minAbre] = (horario.abre || "00:00").split(":").map(Number);
+    const [horaFecha, minFecha] = (horario.fecha || "23:59").split(":").map(Number);
+    const minutosAbre = horaAbre * 60 + minAbre;
+    const minutosFecha = horaFecha * 60 + minFecha;
+
+    if (minutosFecha > minutosAbre) {
+      // horário no mesmo dia, ex: 18:00 até 23:59
+      return minutosAgora >= minutosAbre && minutosAgora <= minutosFecha;
+    }
+    // horário que atravessa a meia-noite, ex: 18:00 até 02:00
+    return minutosAgora >= minutosAbre || minutosAgora <= minutosFecha;
+  }
+
+  function renderStatusAberto() {
+    const r = state.menu?.restaurante;
+    if (!r) return;
+    const aberto = calcularStatusAberto(r.horario);
+    const el = $("#restaurante-status");
+    if (!el) return;
+    el.textContent = aberto ? "Aberto agora" : "Fechado no momento";
+    el.classList.toggle("status-aberto", aberto);
+    el.classList.toggle("status-fechado", !aberto);
+  }
+
+  function renderCabecalho() {
+    const r = state.menu.restaurante;
+    $("#restaurante-nome").textContent = r.nome;
+    $("#restaurante-logo").src = r.logo;
+    $("#restaurante-logo").alt = `Logo do ${r.nome}`;
+    $("#restaurante-tempo").textContent = r.tempoEstimado || "";
+    document.title = `${r.nome} — Cardápio`;
+
+    $("#hero-title").textContent = r.nome;
+    $("#hero-slogan").textContent = r.slogan || "";
+    $("#hero-slogan").classList.toggle("hidden", !r.slogan);
+    $("#hero-mascot").src = r.logo;
+    $("#hero-mascot").alt = `Mascote ${r.nome}`;
+    $("#banner-tag").textContent = r.bannerTexto || "";
+    $("#banner-tag").classList.toggle("hidden", !r.bannerTexto);
+
+    renderStatusAberto();
+    if (!state._statusInterval) {
+      state._statusInterval = setInterval(renderStatusAberto, 60 * 1000);
+    }
+  }
+
+  function renderCategoriaNav() {
+    const nav = $("#categoria-nav-scroll");
+    nav.innerHTML = "";
+    state.menu.categorias.forEach((cat) => {
+      const chip = document.createElement("button");
+      chip.className = "chip";
+      chip.type = "button";
+      chip.dataset.categoria = cat.id;
+      chip.setAttribute("aria-current", cat.id === state.categoriaAtiva ? "true" : "false");
+      chip.innerHTML = `<span class="chip-icon">${cat.icone}</span><span>${cat.nome}</span>`;
+      chip.addEventListener("click", () => {
+        const alvo = document.getElementById(`categoria-${cat.id}`);
+        if (alvo) alvo.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      nav.appendChild(chip);
+    });
+  }
+
+  function produtosFiltrados() {
+    const termo = state.termoBusca.trim().toLowerCase();
+    if (!termo) return state.menu.produtos;
+    return state.menu.produtos.filter((p) =>
+      p.nome.toLowerCase().includes(termo) || p.descricao.toLowerCase().includes(termo)
+    );
+  }
+
+  function renderProdutos() {
+    const container = $("#categorias-container");
+    container.innerHTML = "";
+    const produtos = produtosFiltrados();
+    const semResultado = $("#sem-resultado");
+
+    if (produtos.length === 0) {
+      semResultado.classList.remove("hidden");
+      return;
+    }
+    semResultado.classList.add("hidden");
+
+    state.menu.categorias.forEach((cat) => {
+      const produtosDaCategoria = produtos.filter((p) => p.categoria === cat.id);
+      if (produtosDaCategoria.length === 0) return;
+
+      const secao = document.createElement("section");
+      secao.id = `categoria-${cat.id}`;
+      secao.innerHTML = `
+        <h2 class="section-title"><span class="selo" aria-hidden="true">${cat.icone}</span>${cat.nome}</h2>
+        <div class="product-grid"></div>
+      `;
+      const grid = $(".product-grid", secao);
+      produtosDaCategoria.forEach((produto) => grid.appendChild(criarCardProduto(produto)));
+      container.appendChild(secao);
+    });
+  }
+
+  function criarCardProduto(produto) {
+    // Produtos sem adicionais (ex: bebidas, algumas porções) ganham um atalho:
+    // tocar no "+" adiciona 1 unidade direto na sacola, sem abrir o modal.
+    // Tocar no resto do card continua abrindo o modal completo (útil se o
+    // cliente quiser deixar uma observação, mesmo sem adicionais).
+    const semAdicionais = !(produto.adicionais && produto.adicionais.length);
+
+    // Usamos <div role="button"> em vez de <button> porque o botão de
+    // adição rápida também precisa ser um <button> — e a especificação de
+    // HTML não permite <button> dentro de <button>.
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.setAttribute("role", "button");
+    card.setAttribute("tabindex", "0");
+    card.setAttribute("aria-label", `${produto.nome}, ${formatarPreco(produto.preco)}`);
+    card.innerHTML = `
+      <div class="product-photo">
+        ${produto.destaque ? `<span class="badge-destaque selo">TOP</span>` : ""}
+        <img src="${produto.foto}" alt="" loading="lazy">
+      </div>
+      <div class="product-info">
+        <div class="product-name">${produto.nome}</div>
+        <div class="product-desc">${produto.descricao}</div>
+        <div class="product-bottom">
+          <span class="product-price">${formatarPreco(produto.preco)}</span>
+          ${semAdicionais
+            ? `<button type="button" class="btn-add-mini" data-quick-add aria-label="Adicionar 1x ${produto.nome} direto na sacola">+</button>`
+            : `<span class="btn-add-mini" aria-hidden="true">+</span>`}
+        </div>
+      </div>
+    `;
+
+    const abrir = () => abrirModalProduto(produto);
+    card.addEventListener("click", (e) => {
+      if (e.target.closest("[data-quick-add]")) return; // tratado à parte, abaixo
+      abrir();
+    });
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); abrir(); }
+    });
+
+    if (semAdicionais) {
+      $("[data-quick-add]", card).addEventListener("click", (e) => {
+        e.stopPropagation();
+        adicionarRapido(produto);
+      });
+    }
+    return card;
+  }
+
+  function adicionarRapido(produto) {
+    const item = {
+      uid: gerarUidItem(produto.id),
+      produtoId: produto.id,
+      nome: produto.nome,
+      precoBase: produto.preco,
+      adicionais: [],
+      observacao: "",
+      quantidade: 1,
+    };
+    state.cart.push(item);
+    salvarCart();
+    renderCartBar();
+    mostrarToast(`${produto.nome} adicionado à sacola ✅`);
+  }
+
+  // Atualiza o chip ativo conforme o usuário rola a página (IntersectionObserver)
+  function observarSecoes() {
+    const secoes = $$("main section[id^='categoria-']");
+    if (!secoes.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id.replace("categoria-", "");
+            state.categoriaAtiva = id;
+            $$(".chip").forEach((chip) =>
+              chip.setAttribute("aria-current", chip.dataset.categoria === id ? "true" : "false")
+            );
+          }
+        });
+      },
+      { rootMargin: "-120px 0px -70% 0px", threshold: 0 }
+    );
+    secoes.forEach((s) => observer.observe(s));
+  }
+
+  /* =====================================================================
+     6. MODAL DE PRODUTO
+     ===================================================================== */
+  function abrirModalProduto(produto) {
+    state.produtoEmEdicao = produto;
+    state.adicionaisSelecionados = new Set();
+    state.quantidadeModal = 1;
+
+    $("#product-modal-photo").src = produto.foto;
+    $("#product-modal-photo").alt = produto.nome;
+    $("#product-modal-title").textContent = produto.nome;
+    $("#product-modal-desc").textContent = produto.descricao;
+    $("#product-obs").value = "";
+
+    // Ingredientes (somente informativo)
+    const ingredientesWrap = $("#product-ingredientes");
+    ingredientesWrap.innerHTML = "";
+    (produto.ingredientes || []).forEach((ing) => {
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = ing;
+      ingredientesWrap.appendChild(tag);
+    });
+    $("#product-ingredientes-block").classList.toggle("hidden", !(produto.ingredientes || []).length);
+
+    // Adicionais (checkbox com preço)
+    const adicionaisIds = produto.adicionais || [];
+    const adicionaisBlock = $("#product-adicionais-block");
+    const adicionaisLista = $("#product-adicionais-list");
+    adicionaisLista.innerHTML = "";
+    if (adicionaisIds.length) {
+      adicionaisBlock.classList.remove("hidden");
+      adicionaisIds.forEach((id) => {
+        const def = state.menu.adicionaisDisponiveis.find((a) => a.id === id);
+        if (!def) return;
+        const row = document.createElement("div");
+        row.className = "addon-row";
+        row.innerHTML = `
+          <div class="addon-check">
+            <span class="checkbox" role="checkbox" aria-checked="false" data-addon-id="${def.id}" tabindex="0">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a0e07" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="addon-label">${def.nome}</span>
+          </div>
+          <span class="addon-price">+ ${formatarPreco(def.preco)}</span>
+        `;
+        const checkboxEl = $(".checkbox", row);
+        const toggle = () => {
+          const ativo = checkboxEl.getAttribute("aria-checked") === "true";
+          checkboxEl.setAttribute("aria-checked", String(!ativo));
+          if (ativo) state.adicionaisSelecionados.delete(def.id);
+          else state.adicionaisSelecionados.add(def.id);
+          atualizarPrecoModal();
+        };
+        checkboxEl.addEventListener("click", toggle);
+        checkboxEl.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+        });
+        adicionaisLista.appendChild(row);
+      });
+    } else {
+      adicionaisBlock.classList.add("hidden");
+    }
+
+    $("#qty-value").textContent = "1";
+    atualizarPrecoModal();
+
+    $("#product-overlay").classList.remove("hidden");
+    travarScroll(true);
+  }
+
+  function fecharModalProduto() {
+    $("#product-overlay").classList.add("hidden");
+    travarScroll(false);
+  }
+
+  function precoUnitarioModal() {
+    const produto = state.produtoEmEdicao;
+    let preco = produto.preco;
+    state.adicionaisSelecionados.forEach((id) => {
+      const def = state.menu.adicionaisDisponiveis.find((a) => a.id === id);
+      if (def) preco += def.preco;
+    });
+    return preco;
+  }
+
+  function atualizarPrecoModal() {
+    const total = precoUnitarioModal() * state.quantidadeModal;
+    $("#product-modal-preco").textContent = formatarPreco(total);
+  }
+
+  function configurarStepperModal() {
+    $("#qty-minus").addEventListener("click", () => {
+      state.quantidadeModal = Math.max(1, state.quantidadeModal - 1);
+      $("#qty-value").textContent = state.quantidadeModal;
+      atualizarPrecoModal();
+    });
+    $("#qty-plus").addEventListener("click", () => {
+      state.quantidadeModal = Math.min(20, state.quantidadeModal + 1);
+      $("#qty-value").textContent = state.quantidadeModal;
+      atualizarPrecoModal();
+    });
+  }
+
+  function adicionarAoCarrinhoDoModal() {
+    const produto = state.produtoEmEdicao;
+    const adicionaisEscolhidos = Array.from(state.adicionaisSelecionados).map((id) =>
+      state.menu.adicionaisDisponiveis.find((a) => a.id === id)
+    ).filter(Boolean);
+
+    const item = {
+      uid: gerarUidItem(produto.id),
+      produtoId: produto.id,
+      nome: produto.nome,
+      precoBase: produto.preco,
+      adicionais: adicionaisEscolhidos, // [{id, nome, preco}]
+      observacao: $("#product-obs").value.trim(),
+      quantidade: state.quantidadeModal,
+    };
+    state.cart.push(item);
+    salvarCart();
+    renderCartBar();
+    fecharModalProduto();
+    mostrarToast(`${produto.nome} adicionado à sacola ✅`);
+  }
+
+  /* =====================================================================
+     7. CARRINHO
+     ===================================================================== */
+  function precoUnitarioItem(item) {
+    return item.precoBase + item.adicionais.reduce((acc, a) => acc + a.preco, 0);
+  }
+
+  function subtotalCarrinho() {
+    const bruto = state.cart.reduce((acc, item) => acc + precoUnitarioItem(item) * item.quantidade, 0);
+    return arredondarMoeda(bruto);
+  }
+
+  // Bairros com taxa de entrega diferenciada (chave normalizada: sem acento, minúsculo)
+  const TAXAS_BAIRRO_ESPECIAIS = {
+    "lago azul": 8.0,
+  };
+
+  function normalizarBairro(txt) {
+    return removerAcentos(String(txt || "")).toLowerCase().trim();
+  }
+
+  function taxaEntregaAtual() {
+    if (state.tipoEntrega === "retirada") return 0;
+    const bairroInput = $("#input-bairro");
+    const bairro = bairroInput ? normalizarBairro(bairroInput.value) : "";
+    if (bairro) {
+      for (const chave in TAXAS_BAIRRO_ESPECIAIS) {
+        if (bairro.includes(chave)) return TAXAS_BAIRRO_ESPECIAIS[chave];
+      }
+    }
+    return state.menu.restaurante.taxaEntrega || 0;
+  }
+
+  function totalCarrinho() {
+    return arredondarMoeda(subtotalCarrinho() + taxaEntregaAtual());
+  }
+
+  function renderCartBar() {
+    const totalItens = state.cart.reduce((acc, i) => acc + i.quantidade, 0);
+    const cartBar = $("#cart-bar");
+    if (totalItens === 0) {
+      cartBar.classList.add("hidden");
+      return;
+    }
+    cartBar.classList.remove("hidden");
+    $("#cart-bar-badge").textContent = totalItens;
+    $("#cart-bar-total").textContent = formatarPreco(subtotalCarrinho());
+  }
+
+  function renderCarrinho() {
+    const vazio = state.cart.length === 0;
+    $("#cart-empty-view").classList.toggle("hidden", !vazio);
+    $("#cart-filled-view").classList.toggle("hidden", vazio);
+
+    const lojaAberta = calcularStatusAberto(state.menu.restaurante.horario);
+    $("#cart-loja-fechada-aviso").classList.toggle("hidden", lojaAberta);
+
+    if (vazio) return;
+
+    const lista = $("#cart-items-list");
+    lista.innerHTML = "";
+    state.cart.forEach((item) => {
+      const el = document.createElement("div");
+      el.className = "cart-item";
+      const adicionaisTxt = item.adicionais.map((a) => `+ ${a.nome}`).join("<br>");
+      el.innerHTML = `
+        <span class="cart-item-qty">${item.quantidade}x</span>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${item.nome}</div>
+          ${adicionaisTxt ? `<div class="cart-item-addons">${adicionaisTxt}</div>` : ""}
+          ${item.observacao ? `<div class="cart-item-obs">Obs: ${item.observacao}</div>` : ""}
+        </div>
+        <div class="cart-item-side">
+          <span class="cart-item-price">${formatarPreco(precoUnitarioItem(item) * item.quantidade)}</span>
+          <div class="mini-stepper">
+            <button class="mini-qty-btn" type="button" data-action="menos" aria-label="Diminuir quantidade de ${item.nome}">−</button>
+            <span class="mini-qty-value">${item.quantidade}</span>
+            <button class="mini-qty-btn" type="button" data-action="mais" aria-label="Aumentar quantidade de ${item.nome}">+</button>
+          </div>
+          <button class="cart-item-remove" data-uid="${item.uid}" type="button">remover</button>
+        </div>
+      `;
+      $(".cart-item-remove", el).addEventListener("click", () => removerDoCarrinho(item.uid));
+      $$(".mini-qty-btn", el).forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const delta = btn.dataset.action === "mais" ? 1 : -1;
+          alterarQuantidadeCarrinho(item.uid, delta);
+        });
+      });
+      lista.appendChild(el);
+    });
+
+    $("#cart-subtotal").textContent = formatarPreco(subtotalCarrinho());
+    $("#cart-taxa-row").classList.toggle("hidden", state.tipoEntrega === "retirada");
+    $("#cart-taxa").textContent = formatarPreco(taxaEntregaAtual());
+    $("#cart-total").textContent = formatarPreco(totalCarrinho());
+    $("#finalize-total").textContent = formatarPreco(totalCarrinho());
+    atualizarTrocoCalculado();
+    atualizarPix();
+  }
+
+  function removerDoCarrinho(uid) {
+    state.cart = state.cart.filter((i) => i.uid !== uid);
+    salvarCart();
+    renderCarrinho();
+    renderCartBar();
+  }
+
+  function alterarQuantidadeCarrinho(uid, delta) {
+    const item = state.cart.find((i) => i.uid === uid);
+    if (!item) return;
+    item.quantidade += delta;
+    if (item.quantidade <= 0) {
+      removerDoCarrinho(uid);
+      return;
+    }
+    salvarCart();
+    renderCarrinho();
+    renderCartBar();
+  }
+
+  function abrirCarrinho() {
+    renderCarrinho();
+    $("#cart-overlay").classList.remove("hidden");
+    travarScroll(true);
+  }
+
+  function fecharCarrinho() {
+    $("#cart-overlay").classList.add("hidden");
+    travarScroll(false);
+  }
+
+  /* =====================================================================
+     8. CHECKOUT
+     ===================================================================== */
+  function configurarEntregaRetirada() {
+    const btnEntrega = $("#opt-entrega");
+    const btnRetirada = $("#opt-retirada");
+    const enderecoSection = $("#endereco-section");
+
+    function aplicar(tipo) {
+      state.tipoEntrega = tipo;
+      btnEntrega.setAttribute("aria-pressed", String(tipo === "entrega"));
+      btnRetirada.setAttribute("aria-pressed", String(tipo === "retirada"));
+      enderecoSection.classList.toggle("hidden", tipo === "retirada");
+      renderCarrinho();
+    }
+    btnEntrega.addEventListener("click", () => aplicar("entrega"));
+    btnRetirada.addEventListener("click", () => aplicar("retirada"));
+  }
+
+  function atualizarTrocoCalculado() {
+    const resultado = $("#troco-resultado");
+    const valorDigitado = $("#input-troco").value.trim();
+
+    if (!valorDigitado) {
+      resultado.classList.add("hidden");
+      resultado.classList.remove("troco-ok", "troco-erro");
+      resultado.textContent = "";
+      return;
+    }
+
+    const valorPago = arredondarMoeda(parseValorBR(valorDigitado));
+    const total = totalCarrinho();
+
+    resultado.classList.remove("hidden");
+
+    if (isNaN(valorPago)) {
+      resultado.classList.add("troco-erro");
+      resultado.classList.remove("troco-ok");
+      resultado.textContent = "Valor inválido.";
+      return;
+    }
+
+    if (valorPago < total) {
+      resultado.classList.add("troco-erro");
+      resultado.classList.remove("troco-ok");
+      resultado.textContent = `Valor menor que o total do pedido (${formatarPreco(total)}).`;
+      return;
+    }
+
+    const troco = arredondarMoeda(valorPago - total);
+    resultado.classList.add("troco-ok");
+    resultado.classList.remove("troco-erro");
+    resultado.textContent = troco > 0
+      ? `Troco: ${formatarPreco(troco)}`
+      : "Sem troco (valor exato).";
+  }
+
+  /* =====================================================================
+     8.1 PIX — geração do código "copia e cola" (padrão EMV / Bacen) e QR
+     ===================================================================== */
+  let pixQrInstance = null;
+
+  function crc16Pix(payload) {
+    let resultado = 0xffff;
+    for (let i = 0; i < payload.length; i++) {
+      resultado ^= payload.charCodeAt(i) << 8;
+      for (let j = 0; j < 8; j++) {
+        resultado = (resultado & 0x8000) ? ((resultado << 1) ^ 0x1021) : (resultado << 1);
+        resultado &= 0xffff;
+      }
+    }
+    return resultado.toString(16).toUpperCase().padStart(4, "0");
+  }
+
+  function campoEmv(id, valor) {
+    const tamanho = String(valor.length).padStart(2, "0");
+    return `${id}${tamanho}${valor}`;
+  }
+
+  function removerAcentos(txt) {
+    return txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+
+  function gerarPayloadPix({ chave, nome, cidade, valor, txid }) {
+    const nomeLimpo = removerAcentos(nome).toUpperCase().substring(0, 25);
+    const cidadeLimpa = removerAcentos(cidade).toUpperCase().substring(0, 15);
+    const txidLimpo = (txid || "***").substring(0, 25);
+
+    const merchantAccount = campoEmv("00", "br.gov.bcb.pix") + campoEmv("01", chave);
+    const partes = [
+      campoEmv("00", "01"),                          // Payload Format Indicator
+      campoEmv("26", merchantAccount),                // Merchant Account Info (Pix)
+      campoEmv("52", "0000"),                         // Merchant Category Code
+      campoEmv("53", "986"),                          // Moeda (BRL)
+    ];
+    if (valor && valor > 0) {
+      partes.push(campoEmv("54", valor.toFixed(2)));  // Valor da transação
+    }
+    partes.push(
+      campoEmv("58", "BR"),                           // País
+      campoEmv("59", nomeLimpo),                       // Nome do recebedor
+      campoEmv("60", cidadeLimpa),                     // Cidade
+      campoEmv("62", campoEmv("05", txidLimpo)),        // Dados adicionais (txid)
+    );
+
+    const payloadSemCrc = partes.join("") + "6304";
+    return payloadSemCrc + crc16Pix(payloadSemCrc);
+  }
+
+  function atualizarPix() {
+    const pix = state.menu?.restaurante?.pix;
+    const container = $("#pix-info");
+    if (!pix || !pix.chave || !container) {
+      if (container) container.classList.add("hidden");
+      return;
+    }
+
+    const visivel = state.formaPagamento === "PIX";
+    container.classList.toggle("hidden", !visivel);
+    if (!visivel) return;
+
+    const total = totalCarrinho();
+    $("#pix-valor").textContent = formatarPreco(total);
+    $("#pix-chave-display").textContent = "(16) 98209-0884";
+
+    const payload = gerarPayloadPix({
+      chave: `+55${pix.chave}`,
+      nome: pix.titular || state.menu.restaurante.nome,
+      cidade: pix.cidade || "",
+      valor: total,
+      txid: "BRUTUSDELIVERY",
+    });
+
+    const qrEl = $("#pix-qrcode");
+    if (window.QRCode && qrEl) {
+      qrEl.innerHTML = "";
+      pixQrInstance = new QRCode(qrEl, {
+        text: payload,
+        width: 150,
+        height: 150,
+        colorDark: "#14100d",
+        colorLight: "#ffffff",
+      });
+    }
+
+    container.dataset.payload = payload;
+  }
+
+  function configurarPixCopiarColar() {
+    async function copiar(texto, mensagem) {
+      try {
+        await navigator.clipboard.writeText(texto);
+        mostrarToast(mensagem);
+      } catch (e) {
+        mostrarToast("Não foi possível copiar. Copie manualmente.");
+      }
+    }
+
+    $("#pix-copiar-chave")?.addEventListener("click", () => {
+      const pix = state.menu?.restaurante?.pix;
+      if (pix) copiar(`+55${pix.chave}`, "Chave Pix copiada!");
+    });
+
+    $("#pix-copiar-codigo")?.addEventListener("click", () => {
+      const payload = $("#pix-info")?.dataset.payload;
+      if (payload) copiar(payload, "Código Pix copiado! Cole no app do seu banco.");
+    });
+  }
+
+  function configurarFormaPagamento() {
+    const opcoes = $$(".payment-option");
+    opcoes.forEach((opt) => {
+      opt.addEventListener("click", () => {
+        opcoes.forEach((o) => o.setAttribute("aria-pressed", "false"));
+        opt.setAttribute("aria-pressed", "true");
+        state.formaPagamento = opt.dataset.pagamento;
+        $("#troco-field").classList.toggle("hidden", state.formaPagamento !== "Dinheiro");
+        atualizarTrocoCalculado();
+        atualizarPix();
+      });
+    });
+
+    $("#input-troco").addEventListener("input", atualizarTrocoCalculado);
+    configurarPixCopiarColar();
+
+    const inputBairro = $("#input-bairro");
+    if (inputBairro) {
+      inputBairro.addEventListener("input", () => {
+        renderCarrinho();
+        renderCartBar();
+      });
+    }
+  }
+
+  function preencherDadosClienteSalvos() {
+    const dados = carregarDadosCliente();
+    if (!dados) return;
+    if (dados.nome) $("#input-nome").value = dados.nome;
+    if (dados.telefone) $("#input-telefone").value = dados.telefone;
+    if (dados.endereco) $("#input-endereco").value = dados.endereco;
+    if (dados.numero) $("#input-numero").value = dados.numero;
+    if (dados.bairro) $("#input-bairro").value = dados.bairro;
+    if (dados.referencia) $("#input-referencia").value = dados.referencia;
+  }
+
+  function validarFormulario() {
+    let valido = true;
+    const camposObrigatorios = [
+      { id: "input-nome" },
+      { id: "input-telefone" },
+    ];
+    if (state.tipoEntrega === "entrega") {
+      camposObrigatorios.push({ id: "input-endereco" }, { id: "input-numero" }, { id: "input-bairro" });
+    }
+    camposObrigatorios.forEach(({ id }) => {
+      const input = document.getElementById(id);
+      const field = input.closest(".field");
+      const preenchido = input.value.trim().length > 0;
+      field.classList.toggle("invalid", !preenchido);
+      if (!preenchido) valido = false;
+    });
+    return valido;
+  }
+
+  /* =====================================================================
+     9. MONTAGEM DA MENSAGEM E ENVIO PARA O WHATSAPP
+     ===================================================================== */
+  function montarMensagemPedido(dadosCliente) {
+    const r = state.menu.restaurante;
+    const linhas = [];
+    const agora = new Date();
+    const dataHora = agora.toLocaleString("pt-BR", {
+      day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
+    });
+
+    linhas.push(`🍔 *NOVO PEDIDO — ${r.nome}*`, "");
+    linhas.push(`🕐 *Horário do pedido:* ${dataHora}`);
+    if (r.tempoEstimado) linhas.push(`⏱️ *Previsão:* ${r.tempoEstimado}`);
+    linhas.push("");
+    linhas.push(`👤 *Cliente:*`, dadosCliente.nome, "");
+    linhas.push(`📞 *Telefone:*`, dadosCliente.telefone, "");
+
+    if (state.tipoEntrega === "entrega") {
+      linhas.push(`📍 *Endereço de entrega:*`);
+      linhas.push(`${dadosCliente.endereco}, ${dadosCliente.numero}`);
+      linhas.push(dadosCliente.bairro);
+      if (dadosCliente.referencia) linhas.push(`Referência: ${dadosCliente.referencia}`);
+      linhas.push("");
+    } else {
+      linhas.push(`🏃 *Retirada no local:*`, r.enderecoRetirada || "Retirar no balcão", "");
+    }
+
+    linhas.push(`🛒 *PEDIDO*`);
+    state.cart.forEach((item) => {
+      linhas.push(`${item.quantidade}x ${item.nome}`);
+      item.adicionais.forEach((a) => linhas.push(`   + ${a.nome}`));
+      if (item.observacao) linhas.push(`   Obs: ${item.observacao}`);
+    });
+    linhas.push("");
+
+    linhas.push(`💰 *Forma de pagamento:*`);
+    if (state.formaPagamento === "Dinheiro" && dadosCliente.troco) {
+      const valorPago = arredondarMoeda(parseValorBR(dadosCliente.troco));
+      const total = totalCarrinho();
+      linhas.push(`Dinheiro — Vai pagar com ${isNaN(valorPago) ? dadosCliente.troco : formatarPreco(valorPago)}`);
+      if (!isNaN(valorPago) && valorPago >= total) {
+        const troco = arredondarMoeda(valorPago - total);
+        linhas.push(troco > 0 ? `Troco: ${formatarPreco(troco)}` : `Sem troco (valor exato)`);
+      }
+    } else if (state.formaPagamento === "PIX") {
+      const pix = r.pix;
+      linhas.push("PIX");
+      if (pix?.chave) {
+        linhas.push(`Chave Pix (celular): (16) 98209-0884`);
+        linhas.push(`Titular: ${pix.titular || r.nome}`);
+      }
+    } else {
+      linhas.push(state.formaPagamento);
+    }
+    linhas.push("");
+
+    linhas.push(`🧾 Subtotal: ${formatarPreco(subtotalCarrinho())}`);
+    if (state.tipoEntrega === "entrega") {
+      linhas.push(`🛵 Taxa de entrega: ${formatarPreco(taxaEntregaAtual())}`);
+    } else {
+      linhas.push(`🏃 Retirada no local (sem taxa de entrega)`);
+    }
+    linhas.push(`💵 *Total: ${formatarPreco(totalCarrinho())}*`, "");
+
+    if (dadosCliente.observacaoGeral) {
+      linhas.push(`📝 *Observação:*`, dadosCliente.observacaoGeral, "");
+    }
+
+    linhas.push(`Obrigado pela preferência! 🙌`);
+    return linhas.join("\n");
+  }
+
+  function finalizarPedido() {
+    if (state.cart.length === 0) return;
+
+    // Loja fechada: avisa claramente e não deixa enviar o pedido, para
+    // evitar pedidos entrando fora do horário de atendimento.
+    if (!calcularStatusAberto(state.menu.restaurante.horario)) {
+      mostrarToast("A loja está fechada no momento. Tente novamente durante o horário de atendimento.");
+      return;
+    }
+
+    if (!validarFormulario()) {
+      mostrarToast("Confira os campos destacados em vermelho.");
+      return;
+    }
+
+    const dadosCliente = {
+      nome: $("#input-nome").value.trim(),
+      telefone: $("#input-telefone").value.trim(),
+      endereco: $("#input-endereco").value.trim(),
+      numero: $("#input-numero").value.trim(),
+      bairro: $("#input-bairro").value.trim(),
+      referencia: $("#input-referencia").value.trim(),
+      troco: $("#input-troco").value.trim(),
+      observacaoGeral: $("#input-observacao-geral").value.trim(),
+    };
+    salvarDadosCliente(dadosCliente);
+
+    const mensagem = montarMensagemPedido(dadosCliente);
+    const numero = state.menu.restaurante.whatsapp.replace(/\D/g, "");
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+
+    // Limpa a sacola após montar o pedido — o pedido "vive" na conversa do WhatsApp.
+    state.cart = [];
+    salvarCart();
+    renderCartBar();
+
+    window.open(url, "_blank", "noopener");
+    fecharCarrinho();
+  }
+
+  /* =====================================================================
+     10. PWA — REGISTRO DO SERVICE WORKER
+     ===================================================================== */
+  function registrarServiceWorker() {
+    // Service Worker (necessário para o modo offline/PWA) só funciona em
+    // páginas servidas por http(s) — não funciona com o arquivo aberto
+    // direto via duplo clique. Isso não afeta o funcionamento do cardápio
+    // e do envio do pedido, só o recurso de "abrir sem internet".
+    if (location.protocol === "file:") return;
+    if (!("serviceWorker" in navigator)) return;
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch((err) => {
+        console.warn("Falha ao registrar o Service Worker:", err);
+      });
+    });
+    window.addEventListener("online", () => mostrarOfflineBanner(false));
+    window.addEventListener("offline", () => mostrarOfflineBanner(true));
+  }
+
+  /* =====================================================================
+     11. INICIALIZAÇÃO
+     ===================================================================== */
+  function configurarEventosGlobais() {
+    $("#busca-input").addEventListener("input", (e) => {
+      state.termoBusca = e.target.value;
+      renderProdutos();
+    });
+
+    $("#product-close").addEventListener("click", fecharModalProduto);
+    $("#product-overlay").addEventListener("click", (e) => {
+      if (e.target.id === "product-overlay") fecharModalProduto();
+    });
+    $("#add-to-cart-btn").addEventListener("click", adicionarAoCarrinhoDoModal);
+
+    $("#cart-bar-btn").addEventListener("click", abrirCarrinho);
+    $("#cart-close").addEventListener("click", fecharCarrinho);
+    $("#cart-overlay").addEventListener("click", (e) => {
+      if (e.target.id === "cart-overlay") fecharCarrinho();
+    });
+
+    $("#finalizar-btn").addEventListener("click", finalizarPedido);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      if (!$("#product-overlay").classList.contains("hidden")) fecharModalProduto();
+      if (!$("#cart-overlay").classList.contains("hidden")) fecharCarrinho();
+    });
+  }
+
+  async function init() {
+    try {
+      state.menu = await carregarMenu();
+    } catch (erro) {
+      $("#loading-screen").innerHTML = `
+        <p style="color:var(--text-dim); text-align:center; padding:0 24px;">
+          Não foi possível carregar o cardápio. Verifique sua conexão e tente novamente.
+        </p>`;
+      console.error(erro);
+      return;
+    }
+
+    state.cart = carregarCartSalvo();
+    state.categoriaAtiva = state.menu.categorias[0]?.id || null;
+
+    renderCabecalho();
+    renderCategoriaNav();
+    renderProdutos();
+    renderCartBar();
+    observarSecoes();
+
+    ajustarOffsetHeader();
+    window.addEventListener("resize", debounce(ajustarOffsetHeader, 150));
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(ajustarOffsetHeader);
+    }
+
+    configurarStepperModal();
+    configurarEntregaRetirada();
+    configurarFormaPagamento();
+    configurarEventosGlobais();
+    preencherDadosClienteSalvos();
+    registrarServiceWorker();
+    atualizarPix();
+
+    $("#loading-screen").classList.add("hidden");
+    $("#app").classList.remove("hidden");
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();

@@ -80,7 +80,7 @@ window.MENU_DATA = {
       "categoria": "combos",
       "nome": "Combo Esquadrão",
       "descricao": "2 Brutu's Clássico (pão, hambúrguer artesanal, queijo, alface, tomate e molho da casa), 2 batatas fritas (200g) e 1 refrigerante 1L. Perfeito para dividir!",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Combo+Esquadrao",
+      "foto": "img/produtos/combo-esquadrao.jpg",
       "preco": 63.9,
       "ingredientes": [
         "2x Brutu's Clássico",
@@ -95,7 +95,7 @@ window.MENU_DATA = {
       "categoria": "combos",
       "nome": "Combo Tropa Bruta",
       "descricao": "3 Brutu's Clássico (pão, hambúrguer artesanal, queijo, alface, tomate e molho da casa), batata frita (200g) e 1 refrigerante 1,5L. Ideal para a galera!",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Combo+Tropa+Bruta",
+      "foto": "img/produtos/combo-tropa-bruta.jpg",
       "preco": 89.9,
       "ingredientes": [
         "3x Brutu's Clássico",
@@ -110,7 +110,7 @@ window.MENU_DATA = {
       "categoria": "combos",
       "nome": "Combo Família Brutu's",
       "descricao": "4 Brutu's Clássico (pão, hambúrguer artesanal, queijo, alface, tomate e molho da casa), batata frita (200g) e 1 refrigerante 2L. O combo completo!",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Combo+Familia+Brutus",
+      "foto": "img/produtos/combo-familia-brutus.jpg",
       "preco": 117.9,
       "ingredientes": [
         "4x Brutu's Clássico",

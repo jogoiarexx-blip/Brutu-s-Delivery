@@ -912,12 +912,7 @@
         linhas.push(troco > 0 ? `Troco: ${formatarPreco(troco)}` : `Sem troco (valor exato)`);
       }
     } else if (state.formaPagamento === "PIX") {
-      const pix = r.pix;
       linhas.push("PIX");
-      if (pix?.chave) {
-        linhas.push(`Chave Pix (celular): (16) 98209-0884`);
-        linhas.push(`Titular: ${pix.titular || r.nome}`);
-      }
     } else {
       linhas.push(state.formaPagamento);
     }
@@ -926,8 +921,6 @@
     linhas.push(`🧾 Subtotal: ${formatarPreco(subtotalCarrinho())}`);
     if (state.tipoEntrega === "entrega") {
       linhas.push(`🛵 Taxa de entrega: ${formatarPreco(taxaEntregaAtual())}`);
-    } else {
-      linhas.push(`🏃 Retirada no local (sem taxa de entrega)`);
     }
     linhas.push(`💵 *Total: ${formatarPreco(totalCarrinho())}*`, "");
 

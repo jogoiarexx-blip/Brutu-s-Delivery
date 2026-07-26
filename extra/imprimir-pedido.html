@@ -135,7 +135,7 @@
     background:#fff; color:#111;
     font-family: var(--font-mono);
     font-size: 12.5px;
-    line-height:1.5;
+    line-height:1.6;
     padding: 16px 14px;
     white-space: pre-wrap;
     word-break: break-word;
@@ -146,31 +146,82 @@
   #recibo-preview.w-80{ width: 300px; }
   #recibo-preview.w-a4{ width: 100%; max-width: 480px; }
   #recibo-preview .linha-b{ font-weight:700; }
-  #recibo-preview hr{ border:none; border-top:1px dashed #111; margin:8px 0; }
+  #recibo-preview hr{ border:none; border-top:1px dashed #111; margin:10px 0; }
   #recibo-preview .vazio{ color:#999; font-style:italic; }
+
+  /* ---------- Cabeçalho e seções do recibo (preview + impressão) ---------- */
+  .recibo-header{ text-align:center; margin-bottom:2px; }
+  .recibo-header .loja-nome{
+    font-family: var(--font-display);
+    font-weight:800;
+    font-size: 1.35em;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .recibo-header .loja-sub{ font-size: .85em; opacity:.65; margin-top:2px; }
+  .recibo-header .loja-numero{
+    font-weight:800;
+    font-size: 1.2em;
+    margin-top: 4px;
+  }
+  .recibo-secao{
+    font-weight:800;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    font-size: .92em;
+    margin: 2px 0 6px;
+  }
+  .recibo-total{
+    font-weight:800;
+    font-size: 1.25em;
+    margin: 8px 0 2px;
+    padding-top: 6px;
+  }
+  .recibo-rodape{ text-align:center; font-style:italic; opacity:.75; margin-top:4px; }
 
   /* Cópia oculta usada só na hora de imprimir */
   #recibo-print{ display:none; }
 
+  /* Usada só um instante, antes de imprimir, para medir a altura real do
+     recibo (fora da tela) com a mesma fonte/padding do modo impressão —
+     é assim que descobrimos a altura certa da página de 58/80mm. */
+  #recibo-print.medindo{
+    display:block;
+    position:fixed;
+    left:-9999px;
+    top:0;
+    background:#fff; color:#000;
+    font-family: var(--font-mono);
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  #recibo-print.medindo.w-58{ width:58mm; font-size:10.5px; padding:2mm 2.5mm; }
+  #recibo-print.medindo.w-80{ width:80mm; font-size:12px; padding:2mm 3mm; }
+  #recibo-print.medindo .linha-b{ font-weight:700; }
+  #recibo-print.medindo hr{ border:none; border-top:1px dashed #000; margin:10px 0; }
+
   @media print{
-    body *{ visibility:hidden; }
-    #recibo-print, #recibo-print *{ visibility:visible; }
+    html, body{ height:auto !important; }
+    .wrap{ display:none !important; }
     #recibo-print{
       display:block;
-      position: absolute; top:0; left:0;
       background:#fff; color:#000;
       font-family: var(--font-mono);
       font-size: 13px;
+      line-height: 1.55;
       padding: 0;
       white-space: pre-wrap;
       word-break: break-word;
     }
-    #recibo-print.w-58{ width: 58mm; font-size: 11px; }
-    #recibo-print.w-80{ width: 80mm; font-size: 12px; }
-    #recibo-print.w-a4{ width: 100%; }
+    #recibo-print.w-58{ width: 58mm; font-size: 10.5px; padding: 2mm 2.5mm; }
+    #recibo-print.w-80{ width: 80mm; font-size: 12px; padding: 2mm 3mm; }
+    #recibo-print.w-a4{ width: 100%; padding: 8mm; }
+    #recibo-print.w-a4 hr{ break-after: avoid; }
+    #recibo-print.w-a4 .recibo-secao{ break-after: avoid; break-before: auto; }
+    #recibo-print.w-a4 .recibo-total{ break-inside: avoid; }
     #recibo-print .linha-b{ font-weight:700; }
-    #recibo-print hr{ border:none; border-top:1px dashed #000; margin:8px 0; }
-    @page{ margin: 8mm; }
+    #recibo-print hr{ border:none; border-top:1px dashed #000; margin:10px 0; }
   }
 </style>
 </head>
@@ -221,6 +272,9 @@
         <button class="btn-primary" id="btn-imprimir">🖨️ Imprimir pedido</button>
         <button class="btn-secondary" id="btn-limpar">Limpar</button>
       </div>
+      <div class="row">
+        <button class="btn-secondary" id="btn-reimprimir" type="button" style="display:none;">🔁 Reimprimir último pedido</button>
+      </div>
     </div>
   </div>
 
@@ -232,9 +286,13 @@
   const preview = document.getElementById("recibo-preview");
   const reciboPrint = document.getElementById("recibo-print");
   const btnColar = document.getElementById("btn-colar");
+  const btnReimprimir = document.getElementById("btn-reimprimir");
   const radiosLargura = document.querySelectorAll('input[name="largura"]');
   const KEY_TEXTO = "brutus-imprimir-pedido:rascunho";
   const KEY_LARGURA = "brutus-imprimir-pedido:largura";
+  const KEY_NUMERO = "brutus-imprimir-pedido:numero-pedido";
+  const KEY_NUMERO_DATA = "brutus-imprimir-pedido:numero-pedido-data";
+  const KEY_ULTIMO = "brutus-imprimir-pedido:ultimo-pedido";
 
   // Mantém o texto e a preferência de largura entre uma impressão e outra.
   try {
@@ -254,6 +312,47 @@
       .replace(/>/g, "&gt;");
   }
 
+  // Data local no formato AAAA-MM-DD, usada só pra saber se já virou o dia.
+  function dataHojeISO() {
+    return new Date().toLocaleDateString("en-CA");
+  }
+
+  // Número do próximo pedido (sem gravar ainda — só é confirmado/gravado
+  // quando o pedido é realmente impresso, em confirmarNumeroUsado()).
+  // Se a data salva for de um dia anterior, o contador reinicia em #0001.
+  function proximoNumeroPedido() {
+    let atual = 0;
+    try {
+      if (localStorage.getItem(KEY_NUMERO_DATA) === dataHojeISO()) {
+        atual = parseInt(localStorage.getItem(KEY_NUMERO), 10) || 0;
+      }
+    } catch (e) {}
+    return atual + 1;
+  }
+
+  function confirmarNumeroUsado(numero) {
+    try {
+      localStorage.setItem(KEY_NUMERO, String(numero));
+      localStorage.setItem(KEY_NUMERO_DATA, dataHojeISO());
+    } catch (e) {}
+  }
+
+  function salvarUltimoPedido(texto, numero, largura) {
+    try {
+      localStorage.setItem(KEY_ULTIMO, JSON.stringify({ texto, numero, largura }));
+    } catch (e) {}
+    atualizarBotaoReimprimir();
+  }
+
+  function atualizarBotaoReimprimir() {
+    let ultimo = null;
+    try { ultimo = JSON.parse(localStorage.getItem(KEY_ULTIMO)); } catch (e) {}
+    btnReimprimir.style.display = ultimo ? "" : "none";
+    if (ultimo) {
+      btnReimprimir.textContent = `🔁 Reimprimir último pedido (#${String(ultimo.numero).padStart(4, "0")})`;
+    }
+  }
+
   // Converte *texto em negrito* (formatação do WhatsApp) em destaque, e
   // limpa os asteriscos soltos que sobrarem.
   function formatarLinha(linha) {
@@ -261,16 +360,81 @@
     return escapada.replace(/\*(.+?)\*/g, '<span class="linha-b">$1</span>');
   }
 
+  // Converte pixels (96px = 1 polegada, padrão CSS) para milímetros.
+  function pxParaMm(px) {
+    return (px / 96) * 25.4;
+  }
+
+  // Mede a altura real que o recibo vai ocupar quando impresso em 58/80mm.
+  // Precisa aplicar a classe "medindo" (mesma fonte/padding do @media print)
+  // porque #recibo-print fica com display:none fora da hora de imprimir,
+  // e um elemento invisível sempre mede 0 de altura.
+  function medirAlturaMm(largura) {
+    reciboPrint.className = `${largura} medindo`;
+    const alturaPx = reciboPrint.scrollHeight;
+    reciboPrint.className = largura;
+    return pxParaMm(alturaPx);
+  }
+
+  // Define o tamanho da "página" de impressão na hora de imprimir.
+  // O CSS de @page não ajusta a altura sozinho: um valor único em "size"
+  // (ex.: "80mm") vale para largura E altura, virando uma página quadrada
+  // — por isso pedidos mais longos que a largura eram cortados em várias
+  // folhas. Aqui medimos a altura real do recibo e informamos os dois
+  // valores (largura e altura), então a página sai do tamanho exato do
+  // pedido, não importa quão longo ele seja.
+  function ajustarPaginaImpressao(largura) {
+    let estilo = document.getElementById("estilo-pagina-impressao");
+    if (!estilo) {
+      estilo = document.createElement("style");
+      estilo.id = "estilo-pagina-impressao";
+      document.head.appendChild(estilo);
+    }
+    let regra;
+    if (largura === "w-58" || largura === "w-80") {
+      const larguraMm = largura === "w-58" ? 58 : 80;
+      const alturaMm = Math.ceil(medirAlturaMm(largura)) + 5; // +5mm de folga
+      regra = `@page{ size: ${larguraMm}mm ${alturaMm}mm; margin:0; }`;
+    } else {
+      regra = `@page{ size: A4; margin: 8mm; }`;
+    }
+    estilo.textContent = regra;
+  }
+
   function larguraAtual() {
     const marcado = document.querySelector('input[name="largura"]:checked');
     return marcado ? marcado.value : "w-80";
   }
 
-  function montarConteudo(texto) {
-    const agora = new Date();
-    const dataHora = agora.toLocaleString("pt-BR");
-    const linhas = texto.split("\n").map(formatarLinha).join("\n");
-    return `Impresso em: ${dataHora}\n<hr>\n${linhas}\n<hr>\n`;
+  function montarConteudo(texto, numero) {
+    const numeroFormatado = String(numero).padStart(4, "0");
+
+    const cabecalho =
+      `<div class="recibo-header">` +
+      `<div class="loja-nome">Brutu's Delivery</div>` +
+      `<div class="loja-numero">Pedido #${numeroFormatado}</div>` +
+      `</div>`;
+
+    const linhasHtml = texto.split("\n").map((linhaOriginal) => {
+      const linhaCrua = linhaOriginal.trim();
+      const formatada = formatarLinha(linhaOriginal);
+
+      // Início de uma seção (pedido, pagamento, observação): separador + destaque
+      if (/^(🛒|💰|📝)/.test(linhaCrua)) {
+        return `<hr><div class="recibo-secao">${formatada}</div>`;
+      }
+      // Linha do total: bem maior e em destaque, como num cupom de verdade
+      if (/^💵/.test(linhaCrua)) {
+        return `<div class="recibo-total">${formatada}</div>`;
+      }
+      // Agradecimento final: centralizado e discreto
+      if (/^Obrigado pela preferência/i.test(linhaCrua)) {
+        return `<div class="recibo-rodape">${formatada}</div>`;
+      }
+      return formatada;
+    });
+
+    return `${cabecalho}\n${linhasHtml.join("\n")}\n<hr>`;
   }
 
   function atualizarPreview() {
@@ -281,7 +445,7 @@
       preview.innerHTML = '<span class="vazio">O pedido colado aparece aqui...</span>';
       return;
     }
-    preview.innerHTML = montarConteudo(texto);
+    preview.innerHTML = montarConteudo(texto, proximoNumeroPedido());
   }
 
   entrada.addEventListener("input", () => {
@@ -319,8 +483,23 @@
       return;
     }
     const largura = larguraAtual();
+    const numero = proximoNumeroPedido();
     reciboPrint.className = largura;
-    reciboPrint.innerHTML = montarConteudo(texto);
+    reciboPrint.innerHTML = montarConteudo(texto, numero);
+    ajustarPaginaImpressao(largura);
+    window.print();
+    confirmarNumeroUsado(numero);
+    salvarUltimoPedido(texto, numero, largura);
+    atualizarPreview();
+  });
+
+  btnReimprimir.addEventListener("click", () => {
+    let ultimo = null;
+    try { ultimo = JSON.parse(localStorage.getItem(KEY_ULTIMO)); } catch (e) {}
+    if (!ultimo) return;
+    reciboPrint.className = ultimo.largura;
+    reciboPrint.innerHTML = montarConteudo(ultimo.texto, ultimo.numero);
+    ajustarPaginaImpressao(ultimo.largura);
     window.print();
   });
 
@@ -332,6 +511,7 @@
   });
 
   atualizarPreview();
+  atualizarBotaoReimprimir();
 </script>
 </body>
 </html>

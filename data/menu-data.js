@@ -16,7 +16,7 @@ window.MENU_DATA = {
     "taxaEntrega": 5,
     "pedidoMinimoEntrega": 0,
     "tempoEstimado": "35-50 min",
-    "enderecoRetirada": "Rua das Brasas, 120 - Centro",
+    "enderecoRetirada": "Diamantino Mauricio, 13 - Bairro Granvile",
     "horario": {
       "abre": "18:00",
       "fecha": "23:30",
@@ -344,7 +344,7 @@ window.MENU_DATA = {
       "categoria": "especiais",
       "nome": "Xtudo Brutus",
       "descricao": "Pão, hambúrguer, salsicha, bacon, ovo, presunto, muçarela, catupiry, cheddar, alface, tomate e molho da casa.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Xtudo+Brutus",
+      "foto": "img/produtos/xtudo-brutus.jpg",
       "preco": 42.9,
       "ingredientes": [
         "Pão",
@@ -402,7 +402,7 @@ window.MENU_DATA = {
       "categoria": "especiais",
       "nome": "Brutus Quente",
       "descricao": "Pão, salsicha, bacon, calabresa, ovo, presunto, muçarela, catupiry, batata palha, tomate, alface, molho especial.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Brutus+Quente",
+      "foto": "img/produtos/brutus-quente.jpg",
       "preco": 36,
       "ingredientes": [
         "Pão",

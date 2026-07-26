@@ -125,7 +125,7 @@ window.MENU_DATA = {
       "categoria": "hamburgueres-gourmet",
       "nome": "Brutu's Clássico",
       "descricao": "Pão, hambúrguer artesanal, queijo, alface, tomate e molho da casa.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Brutus+Classico",
+      "foto": "img/produtos/brutus-classico.jpg",
       "preco": 25.9,
       "ingredientes": [
         "Pão",
@@ -294,9 +294,9 @@ window.MENU_DATA = {
     {
       "id": "e001",
       "categoria": "especiais",
-      "nome": "Duplo Burger Brutos",
+      "nome": "Duplo Burger Brutus",
       "descricao": "Pão, 2 hambúrguer, bacon, 2 fatias de cheddar, molho da casa.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Duplo+Burger+Brutos",
+      "foto": "img/produtos/duplo-burger-brutus.jpg",
       "preco": 39.9,
       "ingredientes": [
         "Pão",

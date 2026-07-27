@@ -20,9 +20,7 @@ window.MENU_DATA = {
     "horario": {
       "abre": "18:00",
       "fecha": "23:30",
-      "diasFechado": [
-        1
-      ]
+      "diasFechado": []
     }
   },
   "categorias": [

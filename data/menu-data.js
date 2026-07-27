@@ -6,7 +6,7 @@ window.MENU_DATA = {
     "slogan": "O sabor é bruto, a fome não tem chance!",
     "logo": "icons/icon-512.png",
     "bannerTexto": "COMBO ESQUADRÃO · a partir de R$ 63,90",
-    "whatsapp": "5516982090884",
+    "whatsapp": "5516993115625",
     "pix": {
       "chave": "16982090884",
       "tipo": "telefone",

@@ -146,6 +146,21 @@ window.MENU_DATA = {
       "destaque": false
     },
     {
+      "id": "c004",
+      "categoria": "combos",
+      "nome": "Combo Premium Brutu's",
+      "descricao": "2 Brutu's Clássico (pão, hambúrguer artesanal, queijo, alface, tomate e molho da casa), batata com cheddar e bacon e 1 refrigerante Guaraná Antártica 1L.",
+      "foto": "img/produtos/combo-premium-brutus.jpg",
+      "preco": 74.9,
+      "ingredientes": [
+        "2x Brutu's Clássico",
+        "Batata com cheddar e bacon",
+        "Guaraná Antártica 1L"
+      ],
+      "adicionais": [],
+      "destaque": true
+    },
+    {
       "id": "g001",
       "categoria": "hamburgueres-gourmet",
       "nome": "Brutu's Clássico",
@@ -245,7 +260,7 @@ window.MENU_DATA = {
       "categoria": "hamburgueres-gourmet",
       "nome": "Brutu's Monster",
       "descricao": "Três hambúrgueres, queijo, cheddar, bacon, alface, tomate, anel de cebola e molho Brutus.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Brutus+Monster",
+      "foto": "img/produtos/brutus-monster.jpg",
       "preco": 44.9,
       "ingredientes": [
         "Pão",

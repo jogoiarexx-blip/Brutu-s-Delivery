@@ -40,6 +40,11 @@
       "icone": "🔥"
     },
     {
+      "id": "porcoes",
+      "nome": "Porções",
+      "icone": "🍟"
+    },
+    {
       "id": "bebidas",
       "nome": "Bebidas",
       "icone": "🥤"
@@ -70,6 +75,26 @@
       "id": "add-hamburguer-extra",
       "nome": "Hambúrguer extra (carne)",
       "preco": 9
+    },
+    {
+      "id": "add-catupiry-porcao",
+      "nome": "Catupiry",
+      "preco": 6
+    },
+    {
+      "id": "add-cheddar-porcao",
+      "nome": "Cheddar",
+      "preco": 5
+    },
+    {
+      "id": "add-bacon-porcao",
+      "nome": "Bacon",
+      "preco": 7
+    },
+    {
+      "id": "add-calabresa-porcao",
+      "nome": "Calabresa",
+      "preco": 6
     }
   ],
   "produtos": [
@@ -193,7 +218,7 @@
       "categoria": "hamburgueres-gourmet",
       "nome": "Brutu's Supremo",
       "descricao": "Dois hambúrgueres, queijo prato, cheddar, bacon, onion rings e barbecue.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Brutus+Supremo",
+      "foto": "img/produtos/brutus-supremo.jpg",
       "preco": 38.9,
       "ingredientes": [
         "Pão",
@@ -245,7 +270,7 @@
       "categoria": "hamburgueres-gourmet",
       "nome": "Brutu's Insano",
       "descricao": "Quatro hambúrgueres, quatro fatias de queijo, bacon em dobro e molho especial.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Brutus+Insano",
+      "foto": "img/produtos/brutus-insano.jpg",
       "preco": 54.9,
       "ingredientes": [
         "Pão",
@@ -451,6 +476,122 @@
         "add-hamburguer-extra"
       ],
       "destaque": false
+    },
+    {
+      "id": "p001",
+      "categoria": "porcoes",
+      "nome": "Batata Frita Tradicional 200g",
+      "descricao": "Porção de batata frita tradicional e crocante, 200g.",
+      "foto": "img/produtos/batata-tradicional-200g.jpg",
+      "preco": 12.9,
+      "ingredientes": [
+        "Batata frita 200g"
+      ],
+      "adicionais": [
+        "add-catupiry-porcao",
+        "add-cheddar-porcao",
+        "add-bacon-porcao",
+        "add-calabresa-porcao"
+      ],
+      "destaque": false
+    },
+    {
+      "id": "p002",
+      "categoria": "porcoes",
+      "nome": "Batata Frita Tradicional 400g",
+      "descricao": "Porção de batata frita tradicional e crocante, 400g.",
+      "foto": "img/produtos/batata-tradicional-400g.jpg",
+      "preco": 20.9,
+      "ingredientes": [
+        "Batata frita 400g"
+      ],
+      "adicionais": [
+        "add-catupiry-porcao",
+        "add-cheddar-porcao",
+        "add-bacon-porcao",
+        "add-calabresa-porcao"
+      ],
+      "destaque": false
+    },
+    {
+      "id": "p003",
+      "categoria": "porcoes",
+      "nome": "Batata Frita Tradicional 700g",
+      "descricao": "Porção de batata frita tradicional e crocante, 700g.",
+      "foto": "img/produtos/batata-tradicional-700g.jpg",
+      "preco": 35.9,
+      "ingredientes": [
+        "Batata frita 700g"
+      ],
+      "adicionais": [
+        "add-catupiry-porcao",
+        "add-cheddar-porcao",
+        "add-bacon-porcao",
+        "add-calabresa-porcao"
+      ],
+      "destaque": false
+    },
+    {
+      "id": "p004",
+      "categoria": "porcoes",
+      "nome": "Batata Cheddar e Bacon 400g",
+      "descricao": "Batata frita recheada com cheddar cremoso e bacon, 400g.",
+      "foto": "img/produtos/batata-cheddar-bacon-400g.jpg",
+      "preco": 35.9,
+      "ingredientes": [
+        "Batata frita 400g",
+        "Cheddar",
+        "Bacon"
+      ],
+      "adicionais": [
+        "add-catupiry-porcao",
+        "add-cheddar-porcao",
+        "add-bacon-porcao",
+        "add-calabresa-porcao"
+      ],
+      "destaque": true
+    },
+    {
+      "id": "p005",
+      "categoria": "porcoes",
+      "nome": "Batata Catupiry e Bacon 400g",
+      "descricao": "Batata frita recheada com catupiry cremoso e bacon, 400g.",
+      "foto": "img/produtos/batata-catupiry-bacon-400g.jpg",
+      "preco": 33.9,
+      "ingredientes": [
+        "Batata frita 400g",
+        "Catupiry",
+        "Bacon"
+      ],
+      "adicionais": [
+        "add-catupiry-porcao",
+        "add-cheddar-porcao",
+        "add-bacon-porcao",
+        "add-calabresa-porcao"
+      ],
+      "destaque": false
+    },
+    {
+      "id": "p006",
+      "categoria": "porcoes",
+      "nome": "Batata Fritas 700g Completa",
+      "descricao": "Batata, cheddar, bacon, calabresa e muçarela. A porção mais recheada da casa!",
+      "foto": "img/produtos/batata-700g-completa.jpg",
+      "preco": 60.9,
+      "ingredientes": [
+        "Batata frita 700g",
+        "Cheddar",
+        "Bacon",
+        "Calabresa",
+        "Muçarela"
+      ],
+      "adicionais": [
+        "add-catupiry-porcao",
+        "add-cheddar-porcao",
+        "add-bacon-porcao",
+        "add-calabresa-porcao"
+      ],
+      "destaque": true
     },
     {
       "id": "b001",

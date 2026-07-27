@@ -108,12 +108,12 @@
     }
   }
 
-  function mostrarToast(mensagem) {
+  function mostrarToast(mensagem, duracaoMs = 1800) {
     const toast = document.createElement("div");
     toast.className = "toast";
     toast.textContent = mensagem;
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 1800);
+    setTimeout(() => toast.remove(), duracaoMs);
   }
 
   // Gera um identificador único para cada item da sacola. Usar só Date.now()
@@ -633,6 +633,7 @@
 
   function abrirCarrinho() {
     renderCarrinho();
+    esconderAvisoPopupBloqueado();
     $("#cart-overlay").classList.remove("hidden");
     travarScroll(true);
   }
@@ -879,6 +880,7 @@
 
     linhas.push(`🍔 *NOVO PEDIDO — ${r.nome}*`, "");
     linhas.push(`🕐 *Horário do pedido:* ${dataHora}`);
+    linhas.push(`_(hora em que o cliente finalizou o pedido no cardápio — pode ser diferente da hora que esta mensagem chegou aqui, caso o envio tenha demorado)_`);
     if (r.tempoEstimado) linhas.push(`⏱️ *Previsão:* ${r.tempoEstimado}`);
     linhas.push("");
     linhas.push(`👤 *Cliente:*`, dadosCliente.nome, "");
@@ -932,7 +934,24 @@
     return linhas.join("\n");
   }
 
+  let enviandoPedido = false;
+
+  function travarBotaoFinalizar() {
+    enviandoPedido = true;
+    const btn = $("#finalizar-btn");
+    if (btn) btn.disabled = true;
+  }
+
+  function destravarBotaoFinalizar() {
+    enviandoPedido = false;
+    const btn = $("#finalizar-btn");
+    if (btn) btn.disabled = false;
+  }
+
   function finalizarPedido() {
+    // Trava logo de cara: evita que um duplo clique rápido dispare o
+    // envio duas vezes (duas janelas/abas do WhatsApp, duas mensagens).
+    if (enviandoPedido) return;
     if (state.cart.length === 0) return;
 
     // Loja fechada: avisa claramente e não deixa enviar o pedido, para
@@ -946,6 +965,8 @@
       mostrarToast("Confira os campos destacados em vermelho.");
       return;
     }
+
+    travarBotaoFinalizar();
 
     const dadosCliente = {
       nome: $("#input-nome").value.trim(),
@@ -963,13 +984,87 @@
     const numero = state.menu.restaurante.whatsapp.replace(/\D/g, "");
     const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
 
-    // Limpa a sacola após montar o pedido — o pedido "vive" na conversa do WhatsApp.
-    state.cart = [];
-    salvarCart();
-    renderCartBar();
+    if (abrirWhatsapp(url)) {
+      // Só esvazia a sacola depois de confirmar que a janela do WhatsApp
+      // abriu — o pedido "vive" na conversa do WhatsApp a partir daqui.
+      state.cart = [];
+      salvarCart();
+      renderCartBar();
+      esconderAvisoPopupBloqueado();
+      mostrarAvisoConfirmarWhatsapp();
+    } else {
+      // Pop-up bloqueado pelo navegador (comum no Safari/iPhone e em
+      // alguns Androids): mantém o pedido na sacola e mostra um link real
+      // para o cliente tocar. Um clique direto em <a> não é bloqueado.
+      mostrarAvisoPopupBloqueado(url);
+    }
 
-    window.open(url, "_blank", "noopener");
-    fecharCarrinho();
+    // Destrava o botão nos dois casos: se deu certo, a sacola já esvaziou
+    // e um novo clique não faz nada; se foi bloqueado, o cliente precisa
+    // poder tentar de novo (ex: depois de liberar o pop-up no navegador).
+    destravarBotaoFinalizar();
+  }
+
+  function abrirWhatsapp(url) {
+    // Abre a janela/aba já dentro do gesto de clique e só depois define a
+    // URL. Isso permite checar se o navegador bloqueou o pop-up: quando
+    // bloqueado, window.open retorna null (ou uma janela já fechada).
+    // Obs: não usamos a flag "noopener" aqui porque ela faz window.open
+    // sempre retornar null (mesmo com sucesso), o que impediria essa
+    // checagem. Em vez disso, zeramos manualmente a referência "opener"
+    // da nova janela, obtendo a mesma proteção sem perder a detecção.
+    let novaJanela;
+    try {
+      novaJanela = window.open("", "_blank");
+    } catch (e) {
+      novaJanela = null;
+    }
+
+    const bloqueado = !novaJanela || novaJanela.closed || typeof novaJanela.closed === "undefined";
+    if (bloqueado) return false;
+
+    try {
+      novaJanela.opener = null;
+    } catch (e) {
+      /* alguns navegadores não deixam reatribuir opener; segue normalmente */
+    }
+    novaJanela.location.href = url;
+    return true;
+  }
+
+  function mostrarAvisoPopupBloqueado(url) {
+    const banner = $("#whatsapp-blocked-banner");
+    const link = $("#whatsapp-blocked-link");
+    if (link) link.href = url;
+    if (banner) banner.classList.remove("hidden");
+    mostrarToast("Não conseguimos abrir o WhatsApp automaticamente. Toque no link acima para enviar seu pedido.");
+  }
+
+  function esconderAvisoPopupBloqueado() {
+    const banner = $("#whatsapp-blocked-banner");
+    if (banner) banner.classList.add("hidden");
+  }
+
+  let avisoWhatsappTimeoutId = null;
+
+  function mostrarAvisoConfirmarWhatsapp() {
+    const banner = $("#whatsapp-warning-banner");
+    if (banner) banner.classList.remove("hidden");
+    if (avisoWhatsappTimeoutId) clearTimeout(avisoWhatsappTimeoutId);
+    // Deixa o aviso visível acima do botão por um tempo antes de fechar a sacola.
+    avisoWhatsappTimeoutId = setTimeout(() => {
+      fecharCarrinho();
+      esconderAvisoConfirmarWhatsapp();
+    }, 4000);
+  }
+
+  function esconderAvisoConfirmarWhatsapp() {
+    const banner = $("#whatsapp-warning-banner");
+    if (banner) banner.classList.add("hidden");
+    if (avisoWhatsappTimeoutId) {
+      clearTimeout(avisoWhatsappTimeoutId);
+      avisoWhatsappTimeoutId = null;
+    }
   }
 
   /* =====================================================================
@@ -1013,6 +1108,24 @@
     });
 
     $("#finalizar-btn").addEventListener("click", finalizarPedido);
+
+    const whatsappWarningClose = $("#whatsapp-warning-close");
+    if (whatsappWarningClose) {
+      whatsappWarningClose.addEventListener("click", esconderAvisoConfirmarWhatsapp);
+    }
+
+    const whatsappBlockedLink = $("#whatsapp-blocked-link");
+    if (whatsappBlockedLink) {
+      whatsappBlockedLink.addEventListener("click", () => {
+        // Só agora o pedido realmente chegou até o WhatsApp, então
+        // esvaziamos a sacola (o link abre normalmente, é um clique real).
+        esconderAvisoPopupBloqueado();
+        state.cart = [];
+        salvarCart();
+        renderCartBar();
+        mostrarAvisoConfirmarWhatsapp();
+      });
+    }
 
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;

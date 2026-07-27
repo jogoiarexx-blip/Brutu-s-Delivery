@@ -620,6 +620,9 @@ textarea.obs-input:focus, input.text-input:focus, select.text-input:focus{
   display:flex; align-items:center; justify-content:center; gap:10px;
   cursor:pointer;
 }
+.btn-whatsapp:disabled{
+  opacity:.65; cursor:not-allowed;
+}
 .finalize-total{
   display:flex; justify-content:space-between; align-items:baseline;
   padding-bottom:10px; font-size:14px; color: var(--text-dim);
@@ -638,6 +641,42 @@ textarea.obs-input:focus, input.text-input:focus, select.text-input:focus{
   animation: fadeInUp .18s ease-out;
 }
 @keyframes fadeInUp{ from{opacity:0; transform: translate(-50%,10px);} to{opacity:1; transform: translate(-50%,0);} }
+
+/* ---------- Aviso: confirmar envio no WhatsApp ---------- */
+.whatsapp-warning-banner{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  padding:10px 14px; margin-bottom:10px; border-radius:12px;
+  background: var(--danger); color:#2b0b0b;
+  font-size:13.5px; font-weight:800; text-align:center;
+  animation: whatsappWarningBlink 1s steps(1,end) infinite;
+}
+.whatsapp-warning-banner.hidden{ display:none; }
+.whatsapp-warning-banner #whatsapp-warning-close{
+  background:transparent; border:none; color:#2b0b0b; font-size:16px;
+  font-weight:800; line-height:1; cursor:pointer; padding:4px 6px; flex-shrink:0;
+}
+@keyframes whatsappWarningBlink{
+  0%, 49%{ background: var(--danger); }
+  50%, 100%{ background:#ff8a8a; }
+}
+@media (prefers-reduced-motion: reduce){
+  .whatsapp-warning-banner{ animation:none; }
+}
+
+/* ---------- Aviso: pop-up do WhatsApp bloqueado pelo navegador ---------- */
+.whatsapp-blocked-banner{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  padding:12px 14px; margin-bottom:10px; border-radius:12px;
+  background: var(--bg-elevated); border:1.5px solid var(--danger);
+  font-size:13.5px; text-align:center;
+}
+.whatsapp-blocked-banner.hidden{ display:none; }
+.whatsapp-blocked-link{
+  display:inline-block; width:100%; box-sizing:border-box;
+  background: var(--accent); color:#fff; font-weight:800;
+  padding:11px 16px; border-radius:999px; text-decoration:none;
+}
+.whatsapp-blocked-link:active{ opacity:.85; }
 
 /* ---------- Loading / offline ---------- */
 .loading-screen{

@@ -642,9 +642,77 @@ textarea.obs-input:focus, input.text-input:focus, select.text-input:focus{
 }
 @keyframes fadeInUp{ from{opacity:0; transform: translate(-50%,10px);} to{opacity:1; transform: translate(-50%,0);} }
 
+/* ---------- Aviso fixo: pedido ainda não foi enviado ---------- */
+.checkout-alert-card{
+  background: linear-gradient(180deg, #4a0f0f, #3a0c0c);
+  border:1.5px solid var(--danger);
+  border-radius: var(--radius-m);
+  padding:12px 14px; margin-bottom:12px;
+  box-shadow: 0 0 0 1px rgba(255,90,90,.15) inset;
+}
+.checkout-alert-title{
+  color: var(--danger); font-weight:900; font-size:14.5px; margin-bottom:4px;
+  display:flex; align-items:center; gap:6px;
+}
+.checkout-alert-text{
+  color:#ffe4e4; font-size:12.5px; line-height:1.5; margin:0;
+}
+.checkout-alert-text strong{ color:#fff; }
+
+.checkout-confirm-checkbox{
+  display:flex; align-items:flex-start; gap:9px; cursor:pointer;
+  margin:10px 2px 4px; font-size:12.5px; color: var(--text); line-height:1.4;
+}
+.checkout-confirm-checkbox input{
+  width:18px; height:18px; margin-top:1px; flex-shrink:0; accent-color: var(--whatsapp);
+  cursor:pointer;
+}
+.checkout-confirm-hint{
+  font-size:11.5px; color: var(--danger); font-weight:700;
+  margin:0 2px 10px; transition: opacity .15s ease;
+}
+.checkout-confirm-hint.hidden{ display:none; }
+
+/* ---------- Modal: pedido quase concluído ---------- */
+.order-modal-overlay{
+  position:fixed; inset:0; z-index:500;
+  background:rgba(10,7,5,.72);
+  display:flex; align-items:center; justify-content:center;
+  padding:20px; box-sizing:border-box;
+  animation: orderModalFadeIn .2s ease-out;
+}
+.order-modal-overlay.hidden{ display:none; }
+.order-modal{
+  position:relative; width:100%; max-width:400px;
+  background: var(--bg-elevated); border:1.5px solid var(--whatsapp);
+  border-radius: var(--radius-l); padding:28px 24px 24px;
+  text-align:center; box-shadow: var(--shadow-pop);
+  animation: orderModalPopIn .25s cubic-bezier(.34,1.56,.64,1);
+}
+.order-modal-icon{ font-size:38px; margin-bottom:10px; }
+.order-modal h3{ margin:0 0 10px; font-size:19px; color: var(--text); }
+.order-modal p{ margin:0 0 20px; font-size:13.5px; line-height:1.55; color: var(--text-dim); }
+.order-modal p strong{ color: var(--whatsapp); }
+.order-modal-btn{ width:100%; }
+.order-modal-close{
+  position:absolute; top:10px; right:10px; width:30px; height:30px;
+  border-radius:50%; border:none; background: var(--bg); color: var(--text-dim);
+  font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+@keyframes orderModalFadeIn{ from{opacity:0;} to{opacity:1;} }
+@keyframes orderModalPopIn{ from{opacity:0; transform:scale(.92) translateY(8px);} to{opacity:1; transform:scale(1) translateY(0);} }
+@media (prefers-reduced-motion: reduce){
+  .order-modal-overlay, .order-modal{ animation:none; }
+}
+
+/* ---------- Toast: variante de sucesso (verde) ---------- */
+.toast.toast--sucesso{
+  border-color: var(--whatsapp); color:#eafff1;
+}
+
 /* ---------- Aviso: confirmar envio no WhatsApp ---------- */
 .whatsapp-warning-banner{
-  display:flex; align-items:center; justify-content:center; gap:10px;
+  display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;
   padding:10px 14px; margin-bottom:10px; border-radius:12px;
   background: var(--danger); color:#2b0b0b;
   font-size:13.5px; font-weight:800; text-align:center;
@@ -655,6 +723,11 @@ textarea.obs-input:focus, input.text-input:focus, select.text-input:focus{
   background:transparent; border:none; color:#2b0b0b; font-size:16px;
   font-weight:800; line-height:1; cursor:pointer; padding:4px 6px; flex-shrink:0;
 }
+.whatsapp-copy-link{
+  background:#2b0b0b; color:#fff; border:none; border-radius:999px;
+  font-size:12.5px; font-weight:800; padding:7px 14px; cursor:pointer; flex-shrink:0;
+}
+.whatsapp-copy-link:active{ opacity:.85; }
 @keyframes whatsappWarningBlink{
   0%, 49%{ background: var(--danger); }
   50%, 100%{ background:#ff8a8a; }
@@ -677,6 +750,10 @@ textarea.obs-input:focus, input.text-input:focus, select.text-input:focus{
   padding:11px 16px; border-radius:999px; text-decoration:none;
 }
 .whatsapp-blocked-link:active{ opacity:.85; }
+.whatsapp-blocked-banner .whatsapp-copy-link{
+  width:100%; box-sizing:border-box; background:transparent;
+  border:1.5px solid var(--danger); color: var(--text);
+}
 
 /* ---------- Loading / offline ---------- */
 .loading-screen{

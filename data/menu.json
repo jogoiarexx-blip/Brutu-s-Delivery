@@ -664,6 +664,17 @@
       "destaque": false
     },
     {
+      "id": "b013",
+      "categoria": "bebidas",
+      "nome": "Coca-Cola 600ml Zero",
+      "descricao": "Coca-Cola 600ml Zero",
+      "foto": "img/produtos/coca-600ml-branco.jpg",
+      "preco": 8,
+      "ingredientes": [],
+      "adicionais": [],
+      "destaque": false
+    },
+    {
       "id": "b006",
       "categoria": "bebidas",
       "nome": "Guaraná Antártica 1L",
@@ -691,7 +702,18 @@
       "nome": "Coca-Cola 2L",
       "descricao": "Coca-Cola 2L",
       "foto": "img/produtos/coca-2l-branco.jpg",
-      "preco": 13,
+      "preco": 14,
+      "ingredientes": [],
+      "adicionais": [],
+      "destaque": false
+    },
+    {
+      "id": "b014",
+      "categoria": "bebidas",
+      "nome": "Coca-Cola 1L Zero",
+      "descricao": "Coca-Cola 1L Zero",
+      "foto": "img/produtos/coca-1l-zero.jpg",
+      "preco": 10,
       "ingredientes": [],
       "adicionais": [],
       "destaque": false

@@ -108,9 +108,9 @@
     }
   }
 
-  function mostrarToast(mensagem, duracaoMs = 1800) {
+  function mostrarToast(mensagem, duracaoMs = 1800, variante = "") {
     const toast = document.createElement("div");
-    toast.className = "toast";
+    toast.className = variante ? `toast toast--${variante}` : "toast";
     toast.textContent = mensagem;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), duracaoMs);
@@ -870,7 +870,15 @@
   /* =====================================================================
      9. MONTAGEM DA MENSAGEM E ENVIO PARA O WHATSAPP
      ===================================================================== */
-  function montarMensagemPedido(dadosCliente) {
+  // Gera um número curto de pedido (ex: "A3F9K") a partir do timestamp atual.
+  // Serve só para o lojista conseguir diferenciar dois pedidos que chegarem
+  // quase juntos no WhatsApp — não é um ID de banco de dados, é só uma
+  // etiqueta legível gerada na hora, no próprio navegador do cliente.
+  function gerarNumeroPedido() {
+    return Date.now().toString(36).toUpperCase().slice(-5);
+  }
+
+  function montarMensagemPedido(dadosCliente, numeroPedido) {
     const r = state.menu.restaurante;
     const linhas = [];
     const agora = new Date();
@@ -879,6 +887,7 @@
     });
 
     linhas.push(`🍔 *NOVO PEDIDO — ${r.nome}*`, "");
+    linhas.push(`🆔 *Pedido #${numeroPedido}*`);
     linhas.push(`🕐 *Horário do pedido:* ${dataHora}`);
     linhas.push(`_(hora em que o cliente finalizou o pedido no cardápio — pode ser diferente da hora que esta mensagem chegou aqui, caso o envio tenha demorado)_`);
     if (r.tempoEstimado) linhas.push(`⏱️ *Previsão:* ${r.tempoEstimado}`);
@@ -934,6 +943,40 @@
     return linhas.join("\n");
   }
 
+  // wa.me e o navegador têm limite de tamanho pra URL. Passado esse ponto,
+  // o texto pode chegar cortado (ou o link simplesmente não abrir) — então,
+  // em vez de arriscar perder metade do pedido, mandamos só um resumo pelo
+  // link e copiamos o pedido completo pra área de transferência, com um
+  // aviso pedindo pro cliente colar (Ctrl+V) o texto completo no WhatsApp.
+  const LIMITE_CARACTERES_URL = 1800;
+
+  function montarMensagemResumida(dadosCliente, numeroPedido) {
+    const linhas = [];
+    linhas.push(`🍔 *NOVO PEDIDO — ${state.menu.restaurante.nome}*`);
+    linhas.push(`🆔 *Pedido #${numeroPedido}*`, "");
+    linhas.push(`👤 ${dadosCliente.nome}`);
+    linhas.push(`💵 Total: ${formatarPreco(totalCarrinho())}`, "");
+    linhas.push(`⚠️ Pedido grande — os itens completos foram copiados.`);
+    linhas.push(`*Cole aqui (Ctrl+V ou toque e segure > Colar) antes de enviar!*`);
+    return linhas.join("\n");
+  }
+
+  // Guarda o texto do pedido mais recente para os botões de "copiar pedido"
+  // (usados tanto no aviso de pop-up bloqueado quanto no aviso de pedido
+  // grande) sempre terem o texto completo à mão, sem precisar remontá-lo.
+  let ultimoPedidoTextoCompleto = "";
+  let ultimoNumeroPedido = "";
+
+  function copiarTextoPedido(texto) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(texto)
+        .then(() => mostrarToast("Pedido copiado! Cole no WhatsApp para enviar."))
+        .catch(() => mostrarToast("Não foi possível copiar automaticamente. Selecione e copie o texto manualmente."));
+    } else {
+      mostrarToast("Não foi possível copiar automaticamente. Selecione e copie o texto manualmente.");
+    }
+  }
+
   let enviandoPedido = false;
 
   function travarBotaoFinalizar() {
@@ -944,8 +987,52 @@
 
   function destravarBotaoFinalizar() {
     enviandoPedido = false;
+    // Não reabilita direto: o botão só volta a ficar disponível se o
+    // checkbox de confirmação de leitura continuar marcado.
+    atualizarEstadoBotaoFinalizar();
+  }
+
+  // Mantém o botão "Abrir WhatsApp para Enviar Pedido" travado (e com
+  // opacidade reduzida, via CSS de :disabled) enquanto o cliente não marcar
+  // o checkbox de que leu o aviso. Também mostra/esconde o textinho de dica.
+  function atualizarEstadoBotaoFinalizar() {
     const btn = $("#finalizar-btn");
-    if (btn) btn.disabled = false;
+    const checkbox = $("#checkbox-confirmar-envio");
+    const hint = $("#checkout-confirm-hint");
+    const marcado = checkbox ? checkbox.checked : true;
+    if (btn && !enviandoPedido) btn.disabled = !marcado;
+    if (hint) hint.classList.toggle("hidden", marcado);
+  }
+
+  // Exibe o modal de confirmação depois que o WhatsApp foi aberto. A sacola
+  // só é esvaziada quando o cliente fechar esse modal (função abaixo) —
+  // enquanto o modal estiver na tela, o pedido continua guardado, caso o
+  // cliente feche o WhatsApp sem enviar e precise tentar de novo.
+  function abrirModalPedidoEnviado() {
+    const overlay = $("#order-modal-overlay");
+    if (overlay) overlay.classList.remove("hidden");
+  }
+
+  function fecharModalPedidoEnviado() {
+    const overlay = $("#order-modal-overlay");
+    if (overlay) overlay.classList.add("hidden");
+
+    // Só agora o pedido "sai" da sacola do cliente: o WhatsApp já foi
+    // aberto e o cliente confirmou que viu o aviso de que ainda precisa
+    // tocar em "Enviar" por lá.
+    state.cart = [];
+    salvarCart();
+    renderCartBar();
+    esconderAvisoPopupBloqueado();
+    fecharCarrinho();
+
+    // Reseta o checkbox de confirmação para o próximo pedido — cada envio
+    // exige que o cliente confirme a leitura de novo.
+    const checkbox = $("#checkbox-confirmar-envio");
+    if (checkbox) checkbox.checked = false;
+    atualizarEstadoBotaoFinalizar();
+
+    mostrarToast('Lembre-se: o pedido só chega ao restaurante depois que você tocar em "Enviar" no WhatsApp.', 4000, "sucesso");
   }
 
   function finalizarPedido() {
@@ -953,6 +1040,15 @@
     // envio duas vezes (duas janelas/abas do WhatsApp, duas mensagens).
     if (enviandoPedido) return;
     if (state.cart.length === 0) return;
+
+    // Defesa extra: o botão já fica desabilitado enquanto o checkbox não
+    // está marcado, mas checamos de novo aqui para não depender só do
+    // atributo "disabled" do botão.
+    const checkboxConfirmar = $("#checkbox-confirmar-envio");
+    if (checkboxConfirmar && !checkboxConfirmar.checked) {
+      mostrarToast("Marque a confirmação de leitura antes de enviar o pedido.");
+      return;
+    }
 
     // Loja fechada: avisa claramente e não deixa enviar o pedido, para
     // evitar pedidos entrando fora do horário de atendimento.
@@ -980,23 +1076,36 @@
     };
     salvarDadosCliente(dadosCliente);
 
-    const mensagem = montarMensagemPedido(dadosCliente);
+    const numeroPedido = gerarNumeroPedido();
+    const mensagem = montarMensagemPedido(dadosCliente, numeroPedido);
+    ultimoPedidoTextoCompleto = mensagem;
+    ultimoNumeroPedido = numeroPedido;
+
+    // Se o pedido completo estourar o limite seguro de URL, manda só um
+    // resumo pelo link (com o número do pedido e o total) e copia o texto
+    // completo pra área de transferência, avisando o cliente pra colar.
+    const pedidoGrande = encodeURIComponent(mensagem).length > LIMITE_CARACTERES_URL;
+    const mensagemParaLink = pedidoGrande ? montarMensagemResumida(dadosCliente, numeroPedido) : mensagem;
+
     const numero = state.menu.restaurante.whatsapp.replace(/\D/g, "");
-    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagemParaLink)}`;
+
+    if (pedidoGrande) {
+      copiarTextoPedido(mensagem);
+    }
 
     if (abrirWhatsapp(url)) {
-      // Só esvazia a sacola depois de confirmar que a janela do WhatsApp
-      // abriu — o pedido "vive" na conversa do WhatsApp a partir daqui.
-      state.cart = [];
-      salvarCart();
-      renderCartBar();
+      // A sacola só é esvaziada depois que o cliente fechar o modal de
+      // confirmação abaixo — o WhatsApp já abriu, mas o pedido só "sai"
+      // da sacola quando o cliente confirmar que viu o aviso de que ainda
+      // precisa tocar em "Enviar" lá dentro.
       esconderAvisoPopupBloqueado();
-      mostrarAvisoConfirmarWhatsapp();
+      abrirModalPedidoEnviado();
     } else {
       // Pop-up bloqueado pelo navegador (comum no Safari/iPhone e em
       // alguns Androids): mantém o pedido na sacola e mostra um link real
       // para o cliente tocar. Um clique direto em <a> não é bloqueado.
-      mostrarAvisoPopupBloqueado(url);
+      mostrarAvisoPopupBloqueado(url, numeroPedido);
     }
 
     // Destrava o botão nos dois casos: se deu certo, a sacola já esvaziou
@@ -1032,12 +1141,18 @@
     return true;
   }
 
-  function mostrarAvisoPopupBloqueado(url) {
+  function mostrarAvisoPopupBloqueado(url, numeroPedido) {
     const banner = $("#whatsapp-blocked-banner");
     const link = $("#whatsapp-blocked-link");
+    const texto = $("#whatsapp-blocked-texto");
     if (link) link.href = url;
+    if (texto) {
+      texto.textContent = numeroPedido
+        ? `📵 Seu navegador bloqueou a abertura automática do WhatsApp. (Pedido #${numeroPedido})`
+        : "📵 Seu navegador bloqueou a abertura automática do WhatsApp.";
+    }
     if (banner) banner.classList.remove("hidden");
-    mostrarToast("Não conseguimos abrir o WhatsApp automaticamente. Toque no link acima para enviar seu pedido.");
+    mostrarToast("Não conseguimos abrir o WhatsApp automaticamente. Toque no link acima ou copie seu pedido para enviar manualmente.");
   }
 
   function esconderAvisoPopupBloqueado() {
@@ -1047,8 +1162,17 @@
 
   let avisoWhatsappTimeoutId = null;
 
-  function mostrarAvisoConfirmarWhatsapp() {
+  function mostrarAvisoConfirmarWhatsapp(numeroPedido, pedidoGrande) {
     const banner = $("#whatsapp-warning-banner");
+    const texto = $("#whatsapp-warning-texto");
+    if (texto) {
+      const base = numeroPedido
+        ? `⚠️ Confirme o envio no WhatsApp para finalizar seu pedido #${numeroPedido}!`
+        : "⚠️ Confirme o envio no WhatsApp para finalizar seu pedido!";
+      texto.textContent = pedidoGrande
+        ? `${base} Não esqueça de colar (Ctrl+V) os itens antes de enviar.`
+        : base;
+    }
     if (banner) banner.classList.remove("hidden");
     if (avisoWhatsappTimeoutId) clearTimeout(avisoWhatsappTimeoutId);
     // Deixa o aviso visível acima do botão por um tempo antes de fechar a sacola.
@@ -1109,21 +1233,52 @@
 
     $("#finalizar-btn").addEventListener("click", finalizarPedido);
 
+    const checkboxConfirmarEnvio = $("#checkbox-confirmar-envio");
+    if (checkboxConfirmarEnvio) {
+      checkboxConfirmarEnvio.addEventListener("change", atualizarEstadoBotaoFinalizar);
+    }
+    // Estado inicial: checkbox começa desmarcado, então o botão começa
+    // travado e a dica de "marque a caixa" começa visível.
+    atualizarEstadoBotaoFinalizar();
+
+    const orderModalEntendi = $("#order-modal-entendi");
+    if (orderModalEntendi) {
+      orderModalEntendi.addEventListener("click", fecharModalPedidoEnviado);
+    }
+    const orderModalClose = $("#order-modal-close");
+    if (orderModalClose) {
+      orderModalClose.addEventListener("click", fecharModalPedidoEnviado);
+    }
+    const orderModalOverlay = $("#order-modal-overlay");
+    if (orderModalOverlay) {
+      orderModalOverlay.addEventListener("click", (e) => {
+        if (e.target.id === "order-modal-overlay") fecharModalPedidoEnviado();
+      });
+    }
+
     const whatsappWarningClose = $("#whatsapp-warning-close");
     if (whatsappWarningClose) {
       whatsappWarningClose.addEventListener("click", esconderAvisoConfirmarWhatsapp);
+    }
+
+    const whatsappWarningCopy = $("#whatsapp-warning-copy");
+    if (whatsappWarningCopy) {
+      whatsappWarningCopy.addEventListener("click", () => copiarTextoPedido(ultimoPedidoTextoCompleto));
+    }
+
+    const whatsappBlockedCopy = $("#whatsapp-blocked-copy");
+    if (whatsappBlockedCopy) {
+      whatsappBlockedCopy.addEventListener("click", () => copiarTextoPedido(ultimoPedidoTextoCompleto));
     }
 
     const whatsappBlockedLink = $("#whatsapp-blocked-link");
     if (whatsappBlockedLink) {
       whatsappBlockedLink.addEventListener("click", () => {
         // Só agora o pedido realmente chegou até o WhatsApp, então
-        // esvaziamos a sacola (o link abre normalmente, é um clique real).
+        // mostramos o modal de confirmação (a sacola só esvazia quando
+        // o cliente fechar esse modal — mesmo fluxo do envio automático).
         esconderAvisoPopupBloqueado();
-        state.cart = [];
-        salvarCart();
-        renderCartBar();
-        mostrarAvisoConfirmarWhatsapp();
+        abrirModalPedidoEnviado();
       });
     }
 
@@ -1131,6 +1286,7 @@
       if (e.key !== "Escape") return;
       if (!$("#product-overlay").classList.contains("hidden")) fecharModalProduto();
       if (!$("#cart-overlay").classList.contains("hidden")) fecharCarrinho();
+      if (!$("#order-modal-overlay").classList.contains("hidden")) fecharModalPedidoEnviado();
     });
   }
 

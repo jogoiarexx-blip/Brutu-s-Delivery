@@ -159,6 +159,21 @@ window.MENU_DATA = {
       "destaque": true
     },
     {
+      "id": "c005",
+      "categoria": "combos",
+      "nome": "Combo Brutal",
+      "descricao": "X Tudo Brutal (pão, 2 hambúrgueres, queijo, presunto, bacon, calabresa, ovo, batata palha, alface, tomate e molho da casa), batata com cheddar e bacon e 1 refrigerante lata Coca ou Guaraná.",
+      "foto": "img/produtos/combo-brutal.jpg",
+      "preco": 59.9,
+      "ingredientes": [
+        "X Tudo Brutal",
+        "Batata com cheddar e bacon",
+        "Refrigerante lata (Coca ou Guaraná)"
+      ],
+      "adicionais": [],
+      "destaque": true
+    },
+    {
       "id": "g001",
       "categoria": "hamburgueres-gourmet",
       "nome": "Brutu's Clássico",
@@ -758,6 +773,28 @@ window.MENU_DATA = {
       "descricao": "Água com Gás",
       "foto": "img/produtos/agua-com-gas.jpg",
       "preco": 4,
+      "ingredientes": [],
+      "adicionais": [],
+      "destaque": false
+    },
+    {
+      "id": "b015",
+      "categoria": "bebidas",
+      "nome": "Suco de Morango da Fruta 300ml",
+      "descricao": "Suco natural de morango, feito com frutas selecionadas, sem conservantes e sem corantes. 300ml.",
+      "foto": "img/produtos/suco-morango.jpg",
+      "preco": 5,
+      "ingredientes": [],
+      "adicionais": [],
+      "destaque": false
+    },
+    {
+      "id": "b016",
+      "categoria": "bebidas",
+      "nome": "Suco de Morango da Fruta 500ml",
+      "descricao": "Suco natural de morango, feito com frutas selecionadas, sem conservantes e sem corantes. 500ml.",
+      "foto": "img/produtos/suco-morango.jpg",
+      "preco": 8,
       "ingredientes": [],
       "adicionais": [],
       "destaque": false

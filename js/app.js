@@ -524,7 +524,13 @@
 
   // Bairros com taxa de entrega diferenciada (chave normalizada: sem acento, minúsculo)
   const TAXAS_BAIRRO_ESPECIAIS = {
-    "lago azul": 8.0,
+    "centro": 5.0,
+    "lago azul": 10.0,
+    "benedetti": 6.0,
+    "alfredo benedeti": 6.0,
+    "alfredo benedetti": 6.0,
+    "ipe": 5.0,
+    "morada do lago": 8.0,
   };
 
   function normalizarBairro(txt) {

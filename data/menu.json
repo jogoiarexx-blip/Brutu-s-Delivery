@@ -23,6 +23,11 @@
   },
   "categorias": [
     {
+      "id": "lancamentos",
+      "nome": "Lançamentos",
+      "icone": "🆕"
+    },
+    {
       "id": "combos",
       "nome": "Combos",
       "icone": "🧾"
@@ -93,9 +98,47 @@
       "id": "add-calabresa-porcao",
       "nome": "Calabresa",
       "preco": 6
+    },
+    {
+      "id": "add-batata-frita",
+      "nome": "Batata frita",
+      "preco": 4.99
+    },
+    {
+      "id": "acomp-guarana",
+      "nome": "Guaraná Jaboti 200ml",
+      "preco": 0
+    },
+    {
+      "id": "acomp-suco",
+      "nome": "Suco Frupic 450ml (uva ou laranja)",
+      "preco": 0
     }
   ],
   "produtos": [
+    {
+      "id": "l001",
+      "categoria": "lancamentos",
+      "nome": "Banheira de Cheddar Brutu's",
+      "descricao": "Pão macio, hambúrguer, fatia de cheddar, bacon e molho da casa, tudo mergulhado em uma banheira de cheddar.",
+      "foto": "img/produtos/banheira-cheddar-brutus.jpg",
+      "preco": 39.9,
+      "ingredientes": [
+        "Pão",
+        "Hambúrguer",
+        "Cheddar",
+        "Bacon",
+        "Molho da casa"
+      ],
+      "adicionais": [
+        "acomp-guarana",
+        "acomp-suco",
+        "add-batata-frita"
+      ],
+      "escolhaUnicaIds": ["acomp-guarana", "acomp-suco"],
+      "escolhaUnicaTitulo": "Escolha o acompanhamento (grátis, um ou outro)",
+      "destaque": true
+    },
     {
       "id": "c001",
       "categoria": "combos",

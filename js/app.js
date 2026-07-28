@@ -409,14 +409,58 @@
     });
     $("#product-ingredientes-block").classList.toggle("hidden", !(produto.ingredientes || []).length);
 
-    // Adicionais (checkbox com preço)
+    // Adicionais (checkbox com preço). Alguns produtos têm um subgrupo de
+    // "escolha única" (ex: acompanhamento grátis — ou um, ou outro), que é
+    // renderizado como radio em vez de checkbox.
     const adicionaisIds = produto.adicionais || [];
+    const escolhaUnicaIds = (produto.escolhaUnicaIds || []).filter((id) => adicionaisIds.includes(id));
+    const normalIds = adicionaisIds.filter((id) => !escolhaUnicaIds.includes(id));
     const adicionaisBlock = $("#product-adicionais-block");
     const adicionaisLista = $("#product-adicionais-list");
-    adicionaisLista.innerHTML = "";
-    if (adicionaisIds.length) {
-      adicionaisBlock.classList.remove("hidden");
-      adicionaisIds.forEach((id) => {
+
+    function renderAdicionaisLista() {
+      adicionaisLista.innerHTML = "";
+
+      if (escolhaUnicaIds.length) {
+        const jaSelecionado = escolhaUnicaIds.some((id) => state.adicionaisSelecionados.has(id));
+        if (!jaSelecionado) state.adicionaisSelecionados.add(escolhaUnicaIds[0]);
+
+        if (produto.escolhaUnicaTitulo) {
+          const tituloEl = document.createElement("div");
+          tituloEl.className = "addon-group-title";
+          tituloEl.textContent = produto.escolhaUnicaTitulo;
+          adicionaisLista.appendChild(tituloEl);
+        }
+
+        escolhaUnicaIds.forEach((id) => {
+          const def = state.menu.adicionaisDisponiveis.find((a) => a.id === id);
+          if (!def) return;
+          const marcado = state.adicionaisSelecionados.has(def.id);
+          const row = document.createElement("div");
+          row.className = "addon-row";
+          row.innerHTML = `
+            <div class="addon-check">
+              <span class="radio" role="radio" aria-checked="${marcado}" data-addon-id="${def.id}" tabindex="0"></span>
+              <span class="addon-label">${def.nome}</span>
+            </div>
+            <span class="addon-price">${def.preco ? "+ " + formatarPreco(def.preco) : "Grátis"}</span>
+          `;
+          const radioEl = $(".radio", row);
+          const selecionar = () => {
+            escolhaUnicaIds.forEach((outroId) => state.adicionaisSelecionados.delete(outroId));
+            state.adicionaisSelecionados.add(def.id);
+            renderAdicionaisLista();
+            atualizarPrecoModal();
+          };
+          radioEl.addEventListener("click", selecionar);
+          radioEl.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selecionar(); }
+          });
+          adicionaisLista.appendChild(row);
+        });
+      }
+
+      normalIds.forEach((id) => {
         const def = state.menu.adicionaisDisponiveis.find((a) => a.id === id);
         if (!def) return;
         const row = document.createElement("div");
@@ -444,6 +488,11 @@
         });
         adicionaisLista.appendChild(row);
       });
+    }
+
+    if (adicionaisIds.length) {
+      adicionaisBlock.classList.remove("hidden");
+      renderAdicionaisLista();
     } else {
       adicionaisBlock.classList.add("hidden");
     }

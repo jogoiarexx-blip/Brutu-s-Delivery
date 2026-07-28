@@ -345,6 +345,27 @@ window.MENU_DATA = {
       "destaque": false
     },
     {
+      "id": "g008",
+      "categoria": "hamburgueres-gourmet",
+      "nome": "X Burguer Brutus",
+      "descricao": "Pão, hambúrguer e queijo.",
+      "foto": "https://placehold.co/600x450/241c17/ffb703?text=X+Burguer",
+      "preco": 23.9,
+      "ingredientes": [
+        "Pão",
+        "Hambúrguer",
+        "Queijo"
+      ],
+      "adicionais": [
+        "add-bacon",
+        "add-cheddar",
+        "add-ovo",
+        "add-cebola-caramelizada",
+        "add-hamburguer-extra"
+      ],
+      "destaque": false
+    },
+    {
       "id": "e001",
       "categoria": "especiais",
       "nome": "Duplo Burger Brutus",

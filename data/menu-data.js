@@ -671,7 +671,7 @@ window.MENU_DATA = {
       "nome": "Batata Fritas 700g Completa",
       "descricao": "Batata, cheddar, bacon, calabresa e muçarela. A porção mais recheada da casa!",
       "foto": "img/produtos/batata-700g-completa.jpg",
-      "preco": 60.9,
+      "preco": 62.9,
       "ingredientes": [
         "Batata frita 700g",
         "Cheddar",

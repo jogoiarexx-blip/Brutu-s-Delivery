@@ -317,6 +317,354 @@ a{ color:inherit; }
   .stat-card .stat-value{ font-size: 26px; }
   .topbar .brand .sub{ display:none; }
 }
+
+/* =========================================================================
+   PARTE 2 — Aba Produtos: barra de ferramentas, cartões, switch e modal
+   ========================================================================= */
+
+/* ---------- Barra de ferramentas (busca + filtro + novo produto) ---------- */
+.produtos-toolbar{
+  display:flex; flex-wrap:wrap; gap:12px; align-items:center;
+  margin-bottom: 18px;
+}
+.busca-caixa{
+  position:relative; flex: 1 1 220px; min-width: 180px;
+}
+.busca-caixa input{
+  width:100%;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  color: var(--text);
+  font-size: 14px;
+  padding: 11px 14px 11px 38px;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.busca-caixa input:focus{ outline:none; border-color: var(--accent); background: var(--bg-elevated); }
+.busca-caixa input::placeholder{ color: var(--text-faint); }
+.busca-caixa .busca-icone{
+  position:absolute; left:12px; top:50%; transform:translateY(-50%);
+  color: var(--text-faint); font-size:14px; pointer-events:none;
+}
+.busca-caixa .busca-limpar{
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  background:none; border:none; color: var(--text-faint); cursor:pointer;
+  font-size:16px; padding:4px 6px; display:none;
+}
+.busca-caixa.tem-texto .busca-limpar{ display:block; }
+.busca-caixa .busca-limpar:hover{ color: var(--text); }
+
+.filtro-categoria{
+  flex: 0 1 220px; min-width: 160px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  color: var(--text);
+  font-size: 13.5px;
+  padding: 11px 12px;
+  cursor:pointer;
+}
+.filtro-categoria:focus{ outline:none; border-color: var(--accent); }
+
+.btn-novo-produto{
+  flex: 0 0 auto;
+  background: var(--accent); color:#1a0e07;
+  font-weight:700; font-size:14.5px;
+  border:none; border-radius: var(--radius-s);
+  padding: 12px 20px;
+  display:flex; align-items:center; gap:8px;
+  cursor:pointer;
+  box-shadow: 0 4px 16px rgba(255,90,31,.25);
+  transition: background var(--dur) var(--ease), transform 120ms var(--ease);
+}
+.btn-novo-produto:hover{ background:#ff6c38; transform: translateY(-1px); }
+.btn-novo-produto:active{ transform: scale(.97); }
+
+.produtos-resultado-info{
+  font-size:12.5px; color: var(--text-faint);
+  margin: -8px 0 16px;
+}
+
+/* ---------- Grade de cartões ---------- */
+.produtos-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+.produto-card{
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  overflow:hidden;
+  box-shadow: var(--shadow-card);
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  display:flex; flex-direction:column;
+}
+.produto-card:hover{ transform: translateY(-3px); border-color:#4a3c2c; box-shadow: var(--shadow-pop); }
+.produto-card.arrastando{ opacity:.4; }
+.produto-card.indisponivel{ opacity:.6; }
+.produto-card.indisponivel .produto-card-imagem img{ filter: grayscale(.6); }
+
+.produto-card-imagem{
+  position:relative; width:100%; aspect-ratio: 4/3;
+  background: var(--bg-input); overflow:hidden;
+}
+.produto-card-imagem img{ width:100%; height:100%; object-fit:cover; }
+.produto-card-imagem .sem-imagem{
+  width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+  font-size:30px; color: var(--text-faint);
+}
+.produto-card-badge{
+  position:absolute; top:8px; left:8px;
+  background: rgba(20,16,13,.85); backdrop-filter: blur(4px);
+  color: var(--ember); font-size:11px; font-weight:700;
+  padding: 4px 9px; border-radius: 999px;
+  text-transform:uppercase; letter-spacing:.03em;
+}
+.produto-card-indisponivel-tag{
+  position:absolute; top:8px; right:8px;
+  background: var(--danger); color:#fff;
+  font-size:11px; font-weight:700;
+  padding: 4px 9px; border-radius: 999px;
+}
+.produto-card-drag{
+  position:absolute; bottom:8px; right:8px;
+  background: rgba(20,16,13,.75); color: var(--text-dim);
+  border-radius: 8px; padding: 5px 7px; font-size:13px;
+  cursor: grab;
+}
+
+.produto-card-corpo{ padding: 14px 14px 10px; flex:1 1 auto; }
+.produto-card-categoria{
+  font-size:11px; text-transform:uppercase; letter-spacing:.05em;
+  color: var(--accent); font-weight:700; margin-bottom:4px;
+}
+.produto-card-nome{
+  font-size:15px; font-weight:700; line-height:1.3;
+  margin-bottom:6px;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.produto-card-preco{ font-family: var(--font-display); font-size:19px; color: var(--text); }
+.produto-card-preco span{ color: var(--text-faint); font-family: var(--font-body); font-size:12px; }
+
+.produto-card-rodape{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding: 10px 14px 14px; border-top: 1px solid var(--line-soft);
+}
+.produto-card-acoes{ display:flex; gap:4px; }
+.produto-card-acoes .btn{ padding: 8px 9px; font-size:14px; }
+
+/* Switch de disponibilidade */
+.switch-disponivel{ display:flex; align-items:center; gap:7px; font-size:11.5px; color: var(--text-dim); }
+.switch{
+  position:relative; width:36px; height:20px; flex:0 0 auto;
+}
+.switch input{ opacity:0; width:0; height:0; position:absolute; }
+.switch .track{
+  position:absolute; inset:0; background: var(--line); border-radius: 999px;
+  cursor:pointer; transition: background var(--dur) var(--ease);
+}
+.switch .track::before{
+  content:""; position:absolute; width:14px; height:14px; left:3px; top:3px;
+  background:#fff; border-radius:50%;
+  transition: transform var(--dur) var(--ease);
+}
+.switch input:checked + .track{ background: var(--success); }
+.switch input:checked + .track::before{ transform: translateX(16px); }
+
+/* ---------- Estado vazio / sem resultados ---------- */
+.produtos-vazio{
+  grid-column: 1 / -1;
+  background: var(--bg-card);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-m);
+  padding: 46px 20px; text-align:center; color: var(--text-dim);
+}
+.produtos-vazio .emoji{ font-size:32px; margin-bottom:10px; }
+
+/* ---------- Modal (formulário de produto / confirmação) ---------- */
+.modal-overlay{
+  position:fixed; inset:0; background: rgba(10,7,5,.72);
+  backdrop-filter: blur(2px);
+  display:flex; align-items:flex-start; justify-content:center;
+  padding: 26px 16px; overflow-y:auto;
+  z-index: 150;
+  opacity:0; pointer-events:none;
+  transition: opacity var(--dur) var(--ease);
+}
+.modal-overlay.aberto{ opacity:1; pointer-events:auto; }
+.modal-caixa{
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  width: 100%; max-width: 560px;
+  box-shadow: var(--shadow-pop);
+  transform: translateY(14px) scale(.98);
+  transition: transform var(--dur) var(--ease);
+  max-height: calc(100vh - 52px);
+  display:flex; flex-direction:column;
+}
+.modal-overlay.aberto .modal-caixa{ transform: translateY(0) scale(1); }
+.modal-caixa.modal-pequena{ max-width: 400px; }
+
+.modal-cabecalho{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding: 18px 22px; border-bottom: 1px solid var(--line);
+  flex: 0 0 auto;
+}
+.modal-cabecalho h3{ margin:0; font-size:16px; }
+.modal-fechar{
+  background:none; border:none; color: var(--text-faint); cursor:pointer;
+  font-size:20px; line-height:1; padding:4px;
+}
+.modal-fechar:hover{ color: var(--text); }
+.modal-corpo{ padding: 20px 22px; overflow-y:auto; }
+.modal-rodape{
+  display:flex; justify-content:flex-end; gap:10px;
+  padding: 16px 22px; border-top: 1px solid var(--line);
+  flex: 0 0 auto;
+}
+
+/* ---------- Formulário ---------- */
+.campo{ margin-bottom: 16px; }
+.campo label{
+  display:block; font-size:12.5px; font-weight:600;
+  color: var(--text-dim); text-transform:uppercase; letter-spacing:.03em;
+  margin-bottom:7px;
+}
+.campo label .opcional{ text-transform:none; font-weight:400; color: var(--text-faint); }
+.campo input[type="text"],
+.campo input[type="number"],
+.campo input[type="url"],
+.campo select,
+.campo textarea{
+  width:100%;
+  background: var(--bg-input);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  color: var(--text);
+  font-size: 14.5px;
+  padding: 13px 14px;
+  font-family: inherit;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.campo textarea{ min-height:80px; resize:vertical; line-height:1.5; }
+.campo input:focus, .campo select:focus, .campo textarea:focus{
+  outline:none; border-color: var(--accent); background: var(--bg-card);
+}
+.campo.campo-erro input, .campo.campo-erro select, .campo.campo-erro textarea{
+  border-color: var(--danger); background: var(--danger-soft);
+}
+.campo .msg-erro{
+  display:none; color: var(--danger); font-size:12px; margin-top:6px;
+}
+.campo.campo-erro .msg-erro{ display:block; }
+.campo-linha{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+@media (max-width: 480px){ .campo-linha{ grid-template-columns:1fr; } }
+
+.campo-preview-imagem{
+  display:flex; align-items:center; gap:14px; margin-top:10px;
+}
+.campo-preview-imagem .caixa-preview{
+  width:76px; height:76px; border-radius: var(--radius-s);
+  background: var(--bg-input); border:1px dashed var(--line);
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden; flex:0 0 auto; font-size:22px; color: var(--text-faint);
+}
+.campo-preview-imagem .caixa-preview img{ width:100%; height:100%; object-fit:cover; }
+.campo-preview-imagem .preview-texto{ font-size:12px; color: var(--text-faint); line-height:1.5; }
+
+.campo-disponivel-linha{
+  display:flex; align-items:center; justify-content:space-between;
+  background: var(--bg-input); border:1px solid var(--line);
+  border-radius: var(--radius-s); padding: 12px 14px;
+}
+.campo-disponivel-linha .switch-disponivel{ font-size:13px; }
+.campo-disponivel-linha strong{ display:block; font-size:13.5px; color: var(--text); margin-bottom:2px; }
+.campo-disponivel-linha .desc{ font-size:12px; color: var(--text-faint); }
+
+.confirmar-texto{ font-size:14px; color: var(--text-dim); line-height:1.6; }
+.confirmar-texto strong{ color: var(--text); }
+
+/* =========================================================================
+   PARTE 3 — Aba Categorias
+   ========================================================================= */
+.categorias-toolbar{
+  display:flex; justify-content:flex-end; margin-bottom:16px;
+}
+.categorias-lista{
+  display:flex; flex-direction:column; gap:10px;
+}
+.categoria-item{
+  display:flex; align-items:center; gap:14px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  padding: 14px 16px;
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.categoria-item:hover{ border-color:#4a3c2c; }
+.categoria-item.arrastando{ opacity:.4; }
+.categoria-item .categoria-drag{
+  cursor:grab; color: var(--text-faint); font-size:16px; flex:0 0 auto; padding:4px;
+}
+.categoria-item .categoria-icone{
+  width:42px; height:42px; flex:0 0 auto;
+  display:flex; align-items:center; justify-content:center;
+  background: var(--accent-soft); border-radius: var(--radius-s);
+  font-size:19px;
+}
+.categoria-item .categoria-info{ flex: 1 1 auto; min-width:0; }
+.categoria-item .categoria-nome{ font-weight:700; font-size:14.5px; }
+.categoria-item .categoria-contagem{ font-size:12px; color: var(--text-faint); margin-top:2px; }
+.categoria-item .categoria-acoes{ display:flex; gap:4px; flex:0 0 auto; }
+.categoria-item .categoria-acoes .btn{ padding:8px 9px; font-size:14px; }
+
+.categorias-vazio{
+  background: var(--bg-card);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-m);
+  padding: 40px 20px; text-align:center; color: var(--text-dim);
+}
+.categorias-vazio .emoji{ font-size:30px; margin-bottom:10px; }
+
+.campo-icone-linha{ display:flex; gap:10px; align-items:flex-start; }
+.campo-icone-linha .campo{ margin-bottom:0; }
+.campo-icone-linha input#f-cat-icone{ width:76px; text-align:center; font-size:20px; padding:11px 8px; }
+</style>
+
+<style>
+/* =========================================================================
+   PARTE 4 — Aba Configurações
+   ========================================================================= */
+.config-grid{
+  display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px; margin-bottom: 18px;
+}
+.config-secao{
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+}
+.config-secao h3{
+  margin: 0 0 16px; font-size:14px; text-transform:uppercase; letter-spacing:.04em;
+  color: var(--text-dim); display:flex; align-items:center; gap:8px;
+}
+.dias-fechado-grid{ display:flex; flex-wrap:wrap; gap:8px; }
+.dia-chip{
+  display:flex; align-items:center; gap:6px;
+  background: var(--bg-input); border:1px solid var(--line);
+  border-radius: 999px; padding: 8px 13px; font-size:13px; color: var(--text-dim);
+  cursor:pointer; transition: all var(--dur) var(--ease);
+}
+.dia-chip input{ accent-color: var(--accent); }
+.dia-chip:has(input:checked){ border-color: var(--accent); color: var(--text); background: var(--accent-soft); }
+
+.config-rodape{
+  display:flex; justify-content:flex-end; gap:10px; margin-top: 4px;
+}
 </style>
 </head>
 <body>
@@ -414,34 +762,279 @@ a{ color:inherit; }
     <div id="dashboard-categorias-resumo" class="empty-card">Carregando…</div>
   </section>
 
-  <!-- ======================= Aba: Produtos (placeholder — Parte 2) ======================= -->
+  <!-- ======================= Aba: Produtos (Parte 2) ======================= -->
   <section class="tab-panel" id="tab-produtos">
-    <div class="placeholder-panel">
-      <div class="emoji">🚧</div>
-      <h3>Cartões de produtos chegam na Parte 2</h3>
-      <p>Aqui vão entrar: busca em tempo real, filtro por categoria, cartões com<br>
-         imagem/preço/disponibilidade e os botões Editar, Duplicar e Excluir.</p>
+    <div class="produtos-toolbar">
+      <div class="busca-caixa" id="busca-caixa">
+        <span class="busca-icone">🔎</span>
+        <input type="text" id="produtos-busca" placeholder="Buscar produto por nome ou descrição..." autocomplete="off">
+        <button class="busca-limpar" id="produtos-busca-limpar" type="button" aria-label="Limpar busca">×</button>
+      </div>
+      <select class="filtro-categoria" id="produtos-filtro-categoria">
+        <option value="">Todas as categorias</option>
+      </select>
+      <button class="btn-novo-produto" id="btn-novo-produto">
+        <span>➕</span> Novo Produto
+      </button>
     </div>
+    <div class="produtos-resultado-info" id="produtos-resultado-info"></div>
+    <div class="produtos-grid" id="produtos-grid"></div>
   </section>
 
-  <!-- ======================= Aba: Categorias (placeholder — Parte 4) ======================= -->
+  <!-- ======================= Aba: Categorias (Parte 3) ======================= -->
   <section class="tab-panel" id="tab-categorias">
-    <div class="placeholder-panel">
-      <div class="emoji">🚧</div>
-      <h3>Gestão de categorias chega na Parte 4</h3>
-      <p>Junto com o drag-and-drop de reordenação dos produtos.</p>
+    <div class="categorias-toolbar">
+      <button class="btn-novo-produto" id="btn-nova-categoria">
+        <span>➕</span> Nova Categoria
+      </button>
     </div>
+    <div class="categorias-lista" id="categorias-lista"></div>
   </section>
 
-  <!-- ======================= Aba: Configurações (placeholder — Parte 5) ======================= -->
+  <!-- ======================= Aba: Configurações (Parte 4) ======================= -->
   <section class="tab-panel" id="tab-configuracoes">
-    <div class="placeholder-panel">
-      <div class="emoji">🚧</div>
-      <h3>Configurações da loja chegam na Parte 5</h3>
-      <p>Nome, WhatsApp, horário de funcionamento, taxa de entrega etc.</p>
-    </div>
+    <form id="form-config" novalidate>
+      <div class="config-grid">
+
+        <div class="config-secao">
+          <h3>🏪 Dados da loja</h3>
+          <div class="campo" id="campo-cfg-nome">
+            <label for="cfg-nome">Nome da loja</label>
+            <input type="text" id="cfg-nome" placeholder="Ex.: Brutu's Delivery">
+            <div class="msg-erro">Informe o nome da loja.</div>
+          </div>
+          <div class="campo">
+            <label for="cfg-slogan">Slogan <span class="opcional">(opcional)</span></label>
+            <input type="text" id="cfg-slogan" placeholder="Uma frase curta e marcante">
+          </div>
+          <div class="campo">
+            <label for="cfg-logo">Logo <span class="opcional">(caminho ou link)</span></label>
+            <input type="text" id="cfg-logo" placeholder="icons/icon-512.png">
+          </div>
+          <div class="campo" style="margin-bottom:0;">
+            <label for="cfg-banner">Texto do banner <span class="opcional">(opcional)</span></label>
+            <input type="text" id="cfg-banner" placeholder="Ex.: COMBO ESQUADRÃO · a partir de R$ 63,90">
+          </div>
+        </div>
+
+        <div class="config-secao">
+          <h3>📦 Contato e entrega</h3>
+          <div class="campo" id="campo-cfg-whatsapp">
+            <label for="cfg-whatsapp">WhatsApp <span class="opcional">(com DDI e DDD, só números)</span></label>
+            <input type="text" id="cfg-whatsapp" placeholder="5516999999999">
+            <div class="msg-erro">Informe o WhatsApp (apenas números, com DDI e DDD).</div>
+          </div>
+          <div class="campo-linha">
+            <div class="campo">
+              <label for="cfg-taxa-entrega">Taxa de entrega (R$)</label>
+              <input type="number" id="cfg-taxa-entrega" step="0.01" min="0" placeholder="0,00">
+            </div>
+            <div class="campo">
+              <label for="cfg-pedido-minimo">Pedido mínimo p/ entrega (R$)</label>
+              <input type="number" id="cfg-pedido-minimo" step="0.01" min="0" placeholder="0,00">
+            </div>
+          </div>
+          <div class="campo">
+            <label for="cfg-tempo-estimado">Tempo estimado <span class="opcional">(opcional)</span></label>
+            <input type="text" id="cfg-tempo-estimado" placeholder="Ex.: 35-50 min">
+          </div>
+          <div class="campo" style="margin-bottom:0;">
+            <label for="cfg-endereco-retirada">Endereço para retirada <span class="opcional">(opcional)</span></label>
+            <input type="text" id="cfg-endereco-retirada" placeholder="Rua, número - Bairro">
+          </div>
+        </div>
+
+        <div class="config-secao">
+          <h3>🕒 Horário de funcionamento</h3>
+          <div class="campo-linha">
+            <div class="campo">
+              <label for="cfg-horario-abre">Abre às</label>
+              <input type="time" id="cfg-horario-abre">
+            </div>
+            <div class="campo">
+              <label for="cfg-horario-fecha">Fecha às</label>
+              <input type="time" id="cfg-horario-fecha">
+            </div>
+          </div>
+          <div class="campo" style="margin-bottom:0;">
+            <label>Dias fechado <span class="opcional">(opcional)</span></label>
+            <div class="dias-fechado-grid" id="cfg-dias-fechado">
+              <label class="dia-chip"><input type="checkbox" value="0"> Dom</label>
+              <label class="dia-chip"><input type="checkbox" value="1"> Seg</label>
+              <label class="dia-chip"><input type="checkbox" value="2"> Ter</label>
+              <label class="dia-chip"><input type="checkbox" value="3"> Qua</label>
+              <label class="dia-chip"><input type="checkbox" value="4"> Qui</label>
+              <label class="dia-chip"><input type="checkbox" value="5"> Sex</label>
+              <label class="dia-chip"><input type="checkbox" value="6"> Sáb</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="config-secao">
+          <h3>💳 Pix</h3>
+          <div class="campo-linha">
+            <div class="campo">
+              <label for="cfg-pix-chave">Chave Pix</label>
+              <input type="text" id="cfg-pix-chave" placeholder="16999999999">
+            </div>
+            <div class="campo">
+              <label for="cfg-pix-tipo">Tipo de chave</label>
+              <select id="cfg-pix-tipo">
+                <option value="telefone">Telefone</option>
+                <option value="email">E-mail</option>
+                <option value="cpf">CPF</option>
+                <option value="cnpj">CNPJ</option>
+                <option value="aleatoria">Aleatória</option>
+              </select>
+            </div>
+          </div>
+          <div class="campo">
+            <label for="cfg-pix-titular">Nome do titular</label>
+            <input type="text" id="cfg-pix-titular" placeholder="Nome completo">
+          </div>
+          <div class="campo" style="margin-bottom:0;">
+            <label for="cfg-pix-cidade">Cidade do titular</label>
+            <input type="text" id="cfg-pix-cidade" placeholder="Ex.: MORRO AGUDO">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="config-rodape">
+        <button type="button" class="btn btn-primary" id="btn-config-salvar">💾 Salvar configurações</button>
+      </div>
+    </form>
   </section>
 
+</div>
+
+<!-- ======================= Modal: Formulário de Produto ======================= -->
+<div class="modal-overlay" id="modal-produto" aria-hidden="true">
+  <div class="modal-caixa" role="dialog" aria-modal="true" aria-labelledby="modal-produto-titulo">
+    <div class="modal-cabecalho">
+      <h3 id="modal-produto-titulo">Novo produto</h3>
+      <button class="modal-fechar" id="modal-produto-fechar" aria-label="Fechar">×</button>
+    </div>
+    <div class="modal-corpo">
+      <form id="form-produto" novalidate>
+        <div class="campo" id="campo-nome">
+          <label for="f-nome">Nome do produto</label>
+          <input type="text" id="f-nome" placeholder="Ex.: Brutu's Clássico">
+          <div class="msg-erro">Informe o nome do produto.</div>
+        </div>
+
+        <div class="campo-linha">
+          <div class="campo" id="campo-categoria">
+            <label for="f-categoria">Categoria</label>
+            <select id="f-categoria"></select>
+            <div class="msg-erro">Selecione uma categoria.</div>
+          </div>
+          <div class="campo" id="campo-preco">
+            <label for="f-preco">Preço (R$)</label>
+            <input type="number" id="f-preco" step="0.01" min="0" placeholder="0,00">
+            <div class="msg-erro">Informe um preço válido.</div>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="f-descricao">Descrição <span class="opcional">(opcional)</span></label>
+          <textarea id="f-descricao" placeholder="Ingredientes, tamanho, observações..."></textarea>
+        </div>
+
+        <div class="campo">
+          <label for="f-foto">Imagem <span class="opcional">(caminho ou link)</span></label>
+          <input type="text" id="f-foto" placeholder="img/produtos/nome-do-arquivo.jpg">
+          <div class="campo-preview-imagem">
+            <div class="caixa-preview" id="f-foto-preview-caixa"><span>🖼️</span></div>
+            <div class="preview-texto">Use uma imagem já existente em <code>img/produtos/</code> ou uma URL. A pré-visualização aparece ao lado.</div>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="f-ingredientes">Ingredientes <span class="opcional">(um por linha, opcional)</span></label>
+          <textarea id="f-ingredientes" placeholder="Pão&#10;Hambúrguer&#10;Queijo"></textarea>
+        </div>
+
+        <div class="campo campo-disponivel-linha">
+          <div>
+            <strong>Disponível no cardápio</strong>
+            <div class="desc">Produtos indisponíveis não aparecem para o cliente.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="f-disponivel" checked>
+            <span class="track"></span>
+          </label>
+        </div>
+      </form>
+    </div>
+    <div class="modal-rodape">
+      <button class="btn btn-secondary" id="btn-produto-cancelar" type="button">Cancelar</button>
+      <button class="btn btn-primary" id="btn-produto-salvar" type="button">💾 Salvar produto</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= Modal: Confirmar exclusão ======================= -->
+<div class="modal-overlay" id="modal-confirmar" aria-hidden="true">
+  <div class="modal-caixa modal-pequena" role="dialog" aria-modal="true" aria-labelledby="modal-confirmar-titulo">
+    <div class="modal-cabecalho">
+      <h3 id="modal-confirmar-titulo">Excluir produto</h3>
+      <button class="modal-fechar" id="modal-confirmar-fechar" aria-label="Fechar">×</button>
+    </div>
+    <div class="modal-corpo">
+      <p class="confirmar-texto" id="modal-confirmar-texto"></p>
+    </div>
+    <div class="modal-rodape">
+      <button class="btn btn-secondary" id="btn-confirmar-cancelar" type="button">Cancelar</button>
+      <button class="btn btn-primary" id="btn-confirmar-ok" type="button" style="background:var(--danger); color:#fff;">🗑️ Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= Modal: Formulário de Categoria ======================= -->
+<div class="modal-overlay" id="modal-categoria" aria-hidden="true">
+  <div class="modal-caixa modal-pequena" role="dialog" aria-modal="true" aria-labelledby="modal-categoria-titulo">
+    <div class="modal-cabecalho">
+      <h3 id="modal-categoria-titulo">Nova categoria</h3>
+      <button class="modal-fechar" id="modal-categoria-fechar" aria-label="Fechar">×</button>
+    </div>
+    <div class="modal-corpo">
+      <form id="form-categoria" novalidate>
+        <div class="campo-icone-linha">
+          <div class="campo" style="flex:0 0 auto;">
+            <label for="f-cat-icone">Ícone</label>
+            <input type="text" id="f-cat-icone" placeholder="🍔" maxlength="4">
+          </div>
+          <div class="campo" id="campo-cat-nome" style="flex:1 1 auto;">
+            <label for="f-cat-nome">Nome da categoria</label>
+            <input type="text" id="f-cat-nome" placeholder="Ex.: Sobremesas">
+            <div class="msg-erro">Informe o nome da categoria.</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-rodape">
+      <button class="btn btn-secondary" id="btn-categoria-cancelar" type="button">Cancelar</button>
+      <button class="btn btn-primary" id="btn-categoria-salvar" type="button">💾 Salvar categoria</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= Modal: Confirmar exclusão de categoria ======================= -->
+<div class="modal-overlay" id="modal-confirmar-categoria" aria-hidden="true">
+  <div class="modal-caixa modal-pequena" role="dialog" aria-modal="true" aria-labelledby="modal-confirmar-categoria-titulo">
+    <div class="modal-cabecalho">
+      <h3 id="modal-confirmar-categoria-titulo">Excluir categoria</h3>
+      <button class="modal-fechar" id="modal-confirmar-categoria-fechar" aria-label="Fechar">×</button>
+    </div>
+    <div class="modal-corpo">
+      <p class="confirmar-texto" id="modal-confirmar-categoria-texto"></p>
+    </div>
+    <div class="modal-rodape">
+      <button class="btn btn-secondary" id="btn-confirmar-categoria-cancelar" type="button">Cancelar</button>
+      <button class="btn btn-primary" id="btn-confirmar-categoria-ok" type="button" style="background:var(--danger); color:#fff;">🗑️ Excluir</button>
+    </div>
+  </div>
 </div>
 
 <!-- ======================= Toasts ======================= -->
@@ -451,7 +1044,7 @@ a{ color:inherit; }
 <script src="data/menu-data.js"></script>
 <script>
 /* =========================================================================
-   PAINEL DE PRODUTOS — app.js embutido (Parte 1)
+   PAINEL DE PRODUTOS — app.js embutido
    -------------------------------------------------------------------------
    Estrutura deste script:
      1. CONFIG / CONSTANTES
@@ -461,7 +1054,10 @@ a{ color:inherit; }
      5. ABAS
      6. DASHBOARD
      7. IMPORTAR / EXPORTAR / SALVAR
-     8. INICIALIZAÇÃO
+     8. PRODUTOS (busca, filtro, cartões, formulário, drag-and-drop)
+     9. CATEGORIAS (lista, formulário, drag-and-drop, exclusão)
+    10. CONFIGURAÇÕES (dados da loja, contato, horário, Pix)
+    11. INICIALIZAÇÃO
    ========================================================================= */
 (() => {
   "use strict";
@@ -728,15 +1324,735 @@ a{ color:inherit; }
   }
 
   /* =====================================================================
-     8. INICIALIZAÇÃO
+     8. PRODUTOS — busca, filtro, cartões, formulário e drag-and-drop
+     -------------------------------------------------------------------
+     Não altera a estrutura do menu.json: continua sendo
+       { restaurante, categorias:[...], adicionaisDisponiveis:[...], produtos:[...] }
+     Edições ficam em state.menu (memória) e são persistidas no localStorage
+     via salvarRascunho(), a mesma função já usada pelo botão "Salvar".
+     ===================================================================== */
+  const produtosState = {
+    busca: "",
+    categoriaFiltro: "",
+    produtoEmEdicaoId: null, // null = criando produto novo
+    produtoParaExcluirId: null,
+  };
+
+  function nomeCategoria(id) {
+    const cat = (state.menu?.categorias || []).find((c) => c.id === id);
+    return cat ? cat.nome : id || "Sem categoria";
+  }
+
+  function produtoDisponivel(produto) {
+    return produto.disponivel !== false;
+  }
+
+  // Gera um id único e "limpo" a partir do nome do produto, evitando
+  // colisão com ids já existentes (necessário para novos produtos e
+  // para duplicações).
+  function gerarIdProduto(baseTexto) {
+    const slug = (baseTexto || "produto")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "") || "produto";
+    const idsExistentes = new Set((state.menu.produtos || []).map((p) => p.id));
+    let candidato = slug;
+    let contador = 2;
+    while (idsExistentes.has(candidato)) {
+      candidato = `${slug}-${contador}`;
+      contador++;
+    }
+    return candidato;
+  }
+
+  /* ---------- Filtro + busca ---------- */
+  function produtosFiltradosPainel() {
+    const termo = produtosState.busca.trim().toLowerCase();
+    const categoria = produtosState.categoriaFiltro;
+    return (state.menu?.produtos || []).filter((p) => {
+      if (categoria && p.categoria !== categoria) return false;
+      if (!termo) return true;
+      const alvo = `${p.nome || ""} ${p.descricao || ""}`.toLowerCase();
+      return alvo.includes(termo);
+    });
+  }
+
+  function popularFiltroCategorias() {
+    const select = $("#produtos-filtro-categoria");
+    const categorias = state.menu?.categorias || [];
+    const valorAtual = select.value;
+    select.innerHTML = `<option value="">Todas as categorias</option>` +
+      categorias.map((c) => `<option value="${c.id}">${c.icone ? c.icone + " " : ""}${c.nome}</option>`).join("");
+    if ([...select.options].some((o) => o.value === valorAtual)) select.value = valorAtual;
+  }
+
+  /* ---------- Renderização dos cartões ---------- */
+  function criarCardProdutoPainel(produto) {
+    const disponivel = produtoDisponivel(produto);
+    const card = document.createElement("div");
+    card.className = `produto-card${disponivel ? "" : " indisponivel"}`;
+    card.draggable = true;
+    card.dataset.id = produto.id;
+
+    const imagemHtml = produto.foto
+      ? `<img src="${produto.foto}" alt="${produto.nome}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'sem-imagem\\'>🍽️</div>'">`
+      : `<div class="sem-imagem">🍽️</div>`;
+
+    card.innerHTML = `
+      <div class="produto-card-imagem">
+        ${imagemHtml}
+        ${produto.destaque ? `<span class="produto-card-badge">⭐ Destaque</span>` : ""}
+        ${disponivel ? "" : `<span class="produto-card-indisponivel-tag">Indisponível</span>`}
+        <span class="produto-card-drag" title="Arraste para reordenar">⠿</span>
+      </div>
+      <div class="produto-card-corpo">
+        <div class="produto-card-categoria">${nomeCategoria(produto.categoria)}</div>
+        <div class="produto-card-nome">${produto.nome || "(sem nome)"}</div>
+        <div class="produto-card-preco">${formatarPreco(produto.preco)}</div>
+      </div>
+      <div class="produto-card-rodape">
+        <label class="switch-disponivel">
+          <span class="switch">
+            <input type="checkbox" class="chk-disponivel" ${disponivel ? "checked" : ""}>
+            <span class="track"></span>
+          </span>
+        </label>
+        <div class="produto-card-acoes">
+          <button class="btn btn-secondary btn-sm btn-editar" title="Editar">✏️</button>
+          <button class="btn btn-secondary btn-sm btn-duplicar" title="Duplicar">📄</button>
+          <button class="btn btn-danger-ghost btn-sm btn-excluir" title="Excluir">🗑️</button>
+        </div>
+      </div>
+    `;
+
+    card.querySelector(".chk-disponivel").addEventListener("change", (ev) => {
+      produto.disponivel = ev.target.checked;
+      card.classList.toggle("indisponivel", !ev.target.checked);
+      salvarRascunho();
+      renderizarDashboard();
+      mostrarToast(
+        ev.target.checked ? `"${produto.nome}" marcado como disponível.` : `"${produto.nome}" marcado como indisponível.`,
+        "success"
+      );
+    });
+    card.querySelector(".btn-editar").addEventListener("click", () => abrirModalProduto(produto.id));
+    card.querySelector(".btn-duplicar").addEventListener("click", () => duplicarProduto(produto.id));
+    card.querySelector(".btn-excluir").addEventListener("click", () => pedirConfirmacaoExclusao(produto.id));
+
+    return card;
+  }
+
+  function renderizarProdutosGrid() {
+    const grid = $("#produtos-grid");
+    const info = $("#produtos-resultado-info");
+    const lista = produtosFiltradosPainel();
+    const total = state.menu?.produtos?.length || 0;
+
+    grid.innerHTML = "";
+
+    if (total === 0) {
+      grid.innerHTML = `
+        <div class="produtos-vazio">
+          <div class="emoji">🍔</div>
+          <b>Nenhum produto cadastrado ainda.</b><br>
+          Clique em "+ Novo Produto" para começar.
+        </div>`;
+      info.textContent = "";
+      return;
+    }
+
+    if (lista.length === 0) {
+      grid.innerHTML = `
+        <div class="produtos-vazio">
+          <div class="emoji">🔎</div>
+          <b>Nenhum produto encontrado</b><br>
+          Tente outro termo de busca ou outra categoria.
+        </div>`;
+      info.textContent = `Nenhum resultado para os filtros atuais (${total} produto(s) no total).`;
+      return;
+    }
+
+    lista.forEach((produto) => grid.appendChild(criarCardProdutoPainel(produto)));
+    info.textContent = (produtosState.busca || produtosState.categoriaFiltro)
+      ? `Mostrando ${lista.length} de ${total} produto(s).`
+      : `${total} produto(s) cadastrado(s).`;
+
+    iniciarDragAndDrop(grid);
+  }
+
+  /* ---------- Arrastar e soltar (reordenar produtos no array) ---------- */
+  function iniciarDragAndDrop(grid) {
+    let arrastado = null;
+
+    grid.querySelectorAll(".produto-card").forEach((card) => {
+      card.addEventListener("dragstart", () => {
+        arrastado = card;
+        setTimeout(() => card.classList.add("arrastando"), 0);
+      });
+      card.addEventListener("dragend", () => {
+        card.classList.remove("arrastando");
+        arrastado = null;
+        salvarNovaOrdem(grid);
+      });
+      card.addEventListener("dragover", (ev) => {
+        ev.preventDefault();
+        const alvo = card;
+        if (!arrastado || alvo === arrastado) return;
+        const rect = alvo.getBoundingClientRect();
+        const depois = (ev.clientY - rect.top) / rect.height > 0.5;
+        grid.insertBefore(arrastado, depois ? alvo.nextSibling : alvo);
+      });
+    });
+  }
+
+  // A ordem visual (após o drag) é usada para recalcular a posição dos
+  // produtos dentro do array `produtos` do menu.json — sem mudar nenhum
+  // campo, apenas a ordem dos itens no array (é isso que define a ordem
+  // de exibição no cardápio, já que a home filtra por categoria mantendo
+  // a ordem original do array).
+  function salvarNovaOrdem(grid) {
+    const idsNaTela = [...grid.querySelectorAll(".produto-card")].map((c) => c.dataset.id);
+    if (!idsNaTela.length) return;
+
+    const produtos = state.menu.produtos;
+    const idsFiltrados = new Set(idsNaTela);
+    const posicoesOriginais = produtos
+      .map((p, i) => ({ p, i }))
+      .filter(({ p }) => idsFiltrados.has(p.id))
+      .map(({ i }) => i)
+      .sort((a, b) => a - b);
+
+    const porId = new Map(produtos.map((p) => [p.id, p]));
+    const reordenados = idsNaTela.map((id) => porId.get(id));
+
+    posicoesOriginais.forEach((posOriginal, idx) => {
+      produtos[posOriginal] = reordenados[idx];
+    });
+
+    salvarRascunho();
+    mostrarToast("Nova ordem dos produtos salva.", "success", 2000);
+  }
+
+  /* ---------- Duplicar / excluir ---------- */
+  function duplicarProduto(id) {
+    const original = state.menu.produtos.find((p) => p.id === id);
+    if (!original) return;
+    const copia = JSON.parse(JSON.stringify(original));
+    copia.id = gerarIdProduto(`${original.nome}-copia`);
+    copia.nome = `${original.nome} (cópia)`;
+    const indice = state.menu.produtos.findIndex((p) => p.id === id);
+    state.menu.produtos.splice(indice + 1, 0, copia);
+    salvarRascunho();
+    renderizarDashboard();
+    renderizarProdutosGrid();
+    mostrarToast(`"${original.nome}" duplicado com sucesso.`, "success");
+  }
+
+  function pedirConfirmacaoExclusao(id) {
+    const produto = state.menu.produtos.find((p) => p.id === id);
+    if (!produto) return;
+    produtosState.produtoParaExcluirId = id;
+    $("#modal-confirmar-texto").innerHTML =
+      `Tem certeza que deseja excluir <strong>${produto.nome}</strong>? Essa ação não pode ser desfeita.`;
+    abrirModal($("#modal-confirmar"));
+  }
+
+  function confirmarExclusao() {
+    const id = produtosState.produtoParaExcluirId;
+    if (!id) return;
+    const indice = state.menu.produtos.findIndex((p) => p.id === id);
+    if (indice === -1) return;
+    const [removido] = state.menu.produtos.splice(indice, 1);
+    salvarRascunho();
+    renderizarDashboard();
+    renderizarProdutosGrid();
+    fecharModal($("#modal-confirmar"));
+    mostrarToast(`"${removido.nome}" foi excluído.`, "success");
+    produtosState.produtoParaExcluirId = null;
+  }
+
+  /* ---------- Modal genérico (abrir/fechar) ---------- */
+  function abrirModal(overlay) {
+    overlay.classList.add("aberto");
+    overlay.setAttribute("aria-hidden", "false");
+  }
+  function fecharModal(overlay) {
+    overlay.classList.remove("aberto");
+    overlay.setAttribute("aria-hidden", "true");
+  }
+
+  /* ---------- Formulário de produto (criar / editar) ---------- */
+  function popularCategoriasDoFormulario() {
+    const select = $("#f-categoria");
+    const categorias = state.menu?.categorias || [];
+    select.innerHTML = categorias.map((c) => `<option value="${c.id}">${c.icone ? c.icone + " " : ""}${c.nome}</option>`).join("");
+  }
+
+  function atualizarPreviewImagem() {
+    const url = $("#f-foto").value.trim();
+    const caixa = $("#f-foto-preview-caixa");
+    if (!url) {
+      caixa.innerHTML = "<span>🖼️</span>";
+      return;
+    }
+    caixa.innerHTML = `<img src="${url}" onerror="this.parentElement.innerHTML='<span>⚠️</span>'">`;
+  }
+
+  function limparErrosFormulario() {
+    ["campo-nome", "campo-categoria", "campo-preco"].forEach((id) => $(`#${id}`).classList.remove("campo-erro"));
+  }
+
+  function validarFormularioProduto() {
+    limparErrosFormulario();
+    let valido = true;
+    if (!$("#f-nome").value.trim()) {
+      $("#campo-nome").classList.add("campo-erro");
+      valido = false;
+    }
+    if (!$("#f-categoria").value) {
+      $("#campo-categoria").classList.add("campo-erro");
+      valido = false;
+    }
+    const preco = parseFloat($("#f-preco").value);
+    if (isNaN(preco) || preco < 0) {
+      $("#campo-preco").classList.add("campo-erro");
+      valido = false;
+    }
+    return valido;
+  }
+
+  function abrirModalProduto(id) {
+    limparErrosFormulario();
+    popularCategoriasDoFormulario();
+    produtosState.produtoEmEdicaoId = id || null;
+
+    const produto = id ? state.menu.produtos.find((p) => p.id === id) : null;
+
+    $("#modal-produto-titulo").textContent = produto ? "Editar produto" : "Novo produto";
+    $("#f-nome").value = produto?.nome || "";
+    $("#f-categoria").value = produto?.categoria || (state.menu.categorias[0]?.id ?? "");
+    $("#f-preco").value = produto ? produto.preco : "";
+    $("#f-descricao").value = produto?.descricao || "";
+    $("#f-foto").value = produto?.foto || "";
+    $("#f-ingredientes").value = (produto?.ingredientes || []).join("\n");
+    $("#f-disponivel").checked = produto ? produtoDisponivel(produto) : true;
+    atualizarPreviewImagem();
+
+    abrirModal($("#modal-produto"));
+    setTimeout(() => $("#f-nome").focus(), 150);
+  }
+
+  function salvarProdutoDoFormulario() {
+    if (!validarFormularioProduto()) {
+      mostrarToast("Confira os campos destacados no formulário.", "error");
+      return;
+    }
+
+    const dados = {
+      nome: $("#f-nome").value.trim(),
+      categoria: $("#f-categoria").value,
+      preco: parseFloat($("#f-preco").value),
+      descricao: $("#f-descricao").value.trim(),
+      foto: $("#f-foto").value.trim(),
+      ingredientes: $("#f-ingredientes").value.split("\n").map((s) => s.trim()).filter(Boolean),
+      disponivel: $("#f-disponivel").checked,
+    };
+
+    const idEmEdicao = produtosState.produtoEmEdicaoId;
+    if (idEmEdicao) {
+      const produto = state.menu.produtos.find((p) => p.id === idEmEdicao);
+      Object.assign(produto, dados);
+      mostrarToast(`"${dados.nome}" atualizado com sucesso.`, "success");
+    } else {
+      const novo = { id: gerarIdProduto(dados.nome), ...dados };
+      state.menu.produtos.push(novo);
+      mostrarToast(`"${dados.nome}" cadastrado com sucesso.`, "success");
+    }
+
+    salvarRascunho();
+    renderizarDashboard();
+    renderizarProdutosGrid();
+    fecharModal($("#modal-produto"));
+  }
+
+  /* ---------- Ligação dos eventos da aba Produtos ---------- */
+  function iniciarAbaProdutos() {
+    const inputBusca = $("#produtos-busca");
+    const buscaCaixa = $("#busca-caixa");
+    const btnLimparBusca = $("#produtos-busca-limpar");
+    const selectFiltro = $("#produtos-filtro-categoria");
+
+    inputBusca.addEventListener("input", () => {
+      produtosState.busca = inputBusca.value;
+      buscaCaixa.classList.toggle("tem-texto", !!inputBusca.value);
+      renderizarProdutosGrid();
+    });
+    btnLimparBusca.addEventListener("click", () => {
+      inputBusca.value = "";
+      produtosState.busca = "";
+      buscaCaixa.classList.remove("tem-texto");
+      renderizarProdutosGrid();
+      inputBusca.focus();
+    });
+    selectFiltro.addEventListener("change", () => {
+      produtosState.categoriaFiltro = selectFiltro.value;
+      renderizarProdutosGrid();
+    });
+
+    $("#btn-novo-produto").addEventListener("click", () => abrirModalProduto(null));
+    $$("[data-action='novo-produto']").forEach((el) => el.addEventListener("click", () => abrirModalProduto(null)));
+
+    // Modal de produto
+    $("#f-foto").addEventListener("input", atualizarPreviewImagem);
+    $("#btn-produto-salvar").addEventListener("click", salvarProdutoDoFormulario);
+    $("#btn-produto-cancelar").addEventListener("click", () => fecharModal($("#modal-produto")));
+    $("#modal-produto-fechar").addEventListener("click", () => fecharModal($("#modal-produto")));
+    $("#modal-produto").addEventListener("click", (ev) => {
+      if (ev.target.id === "modal-produto") fecharModal($("#modal-produto"));
+    });
+    $("#form-produto").addEventListener("submit", (ev) => ev.preventDefault());
+
+    // Modal de confirmação de exclusão
+    $("#btn-confirmar-ok").addEventListener("click", confirmarExclusao);
+    $("#btn-confirmar-cancelar").addEventListener("click", () => fecharModal($("#modal-confirmar")));
+    $("#modal-confirmar-fechar").addEventListener("click", () => fecharModal($("#modal-confirmar")));
+    $("#modal-confirmar").addEventListener("click", (ev) => {
+      if (ev.target.id === "modal-confirmar") fecharModal($("#modal-confirmar"));
+    });
+
+    // Fecha qualquer modal aberto com a tecla ESC
+    document.addEventListener("keydown", (ev) => {
+      if (ev.key === "Escape") {
+        fecharModal($("#modal-produto"));
+        fecharModal($("#modal-confirmar"));
+      }
+    });
+  }
+
+  /* =====================================================================
+     9. CATEGORIAS — lista, formulário, drag-and-drop e exclusão
+     -------------------------------------------------------------------
+     Assim como em Produtos, a ordem da lista reflete a ordem do array
+     `categorias` no menu.json (é essa ordem que define a sequência das
+     seções no cardápio público).
+     ===================================================================== */
+  const categoriasState = {
+    categoriaEmEdicaoId: null,
+    categoriaParaExcluirId: null,
+  };
+
+  function gerarIdCategoria(baseTexto) {
+    const slug = (baseTexto || "categoria")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "") || "categoria";
+    const idsExistentes = new Set((state.menu.categorias || []).map((c) => c.id));
+    let candidato = slug;
+    let contador = 2;
+    while (idsExistentes.has(candidato)) {
+      candidato = `${slug}-${contador}`;
+      contador++;
+    }
+    return candidato;
+  }
+
+  function contarProdutosDaCategoria(id) {
+    return (state.menu?.produtos || []).filter((p) => p.categoria === id).length;
+  }
+
+  function criarItemCategoria(categoria) {
+    const item = document.createElement("div");
+    item.className = "categoria-item";
+    item.draggable = true;
+    item.dataset.id = categoria.id;
+    const totalProdutos = contarProdutosDaCategoria(categoria.id);
+
+    item.innerHTML = `
+      <span class="categoria-drag" title="Arraste para reordenar">⠿</span>
+      <div class="categoria-icone">${categoria.icone || "🗂️"}</div>
+      <div class="categoria-info">
+        <div class="categoria-nome">${categoria.nome}</div>
+        <div class="categoria-contagem">${totalProdutos} produto(s)</div>
+      </div>
+      <div class="categoria-acoes">
+        <button class="btn btn-secondary btn-sm btn-cat-editar" title="Editar">✏️</button>
+        <button class="btn btn-danger-ghost btn-sm btn-cat-excluir" title="Excluir">🗑️</button>
+      </div>
+    `;
+
+    item.querySelector(".btn-cat-editar").addEventListener("click", () => abrirModalCategoria(categoria.id));
+    item.querySelector(".btn-cat-excluir").addEventListener("click", () => pedirConfirmacaoExclusaoCategoria(categoria.id));
+
+    return item;
+  }
+
+  function renderizarCategoriasLista() {
+    const lista = $("#categorias-lista");
+    const categorias = state.menu?.categorias || [];
+    lista.innerHTML = "";
+
+    if (!categorias.length) {
+      lista.innerHTML = `
+        <div class="categorias-vazio">
+          <div class="emoji">🗂️</div>
+          <b>Nenhuma categoria cadastrada ainda.</b><br>
+          Clique em "+ Nova Categoria" para começar.
+        </div>`;
+      return;
+    }
+
+    categorias.forEach((cat) => lista.appendChild(criarItemCategoria(cat)));
+    iniciarDragAndDropCategorias(lista);
+  }
+
+  function iniciarDragAndDropCategorias(lista) {
+    let arrastado = null;
+    lista.querySelectorAll(".categoria-item").forEach((item) => {
+      item.addEventListener("dragstart", () => {
+        arrastado = item;
+        setTimeout(() => item.classList.add("arrastando"), 0);
+      });
+      item.addEventListener("dragend", () => {
+        item.classList.remove("arrastando");
+        arrastado = null;
+        salvarNovaOrdemCategorias(lista);
+      });
+      item.addEventListener("dragover", (ev) => {
+        ev.preventDefault();
+        if (!arrastado || item === arrastado) return;
+        const rect = item.getBoundingClientRect();
+        const depois = (ev.clientY - rect.top) / rect.height > 0.5;
+        lista.insertBefore(arrastado, depois ? item.nextSibling : item);
+      });
+    });
+  }
+
+  function salvarNovaOrdemCategorias(lista) {
+    const idsNaTela = [...lista.querySelectorAll(".categoria-item")].map((i) => i.dataset.id);
+    if (!idsNaTela.length) return;
+    const porId = new Map(state.menu.categorias.map((c) => [c.id, c]));
+    state.menu.categorias = idsNaTela.map((id) => porId.get(id));
+    salvarRascunho();
+    popularFiltroCategorias();
+    popularCategoriasDoFormulario();
+    mostrarToast("Nova ordem das categorias salva.", "success", 2000);
+  }
+
+  function limparErroFormularioCategoria() {
+    $("#campo-cat-nome").classList.remove("campo-erro");
+  }
+
+  function abrirModalCategoria(id) {
+    limparErroFormularioCategoria();
+    categoriasState.categoriaEmEdicaoId = id || null;
+    const categoria = id ? state.menu.categorias.find((c) => c.id === id) : null;
+
+    $("#modal-categoria-titulo").textContent = categoria ? "Editar categoria" : "Nova categoria";
+    $("#f-cat-icone").value = categoria?.icone || "";
+    $("#f-cat-nome").value = categoria?.nome || "";
+
+    abrirModal($("#modal-categoria"));
+    setTimeout(() => $("#f-cat-nome").focus(), 150);
+  }
+
+  function salvarCategoriaDoFormulario() {
+    limparErroFormularioCategoria();
+    const nome = $("#f-cat-nome").value.trim();
+    const icone = $("#f-cat-icone").value.trim();
+
+    if (!nome) {
+      $("#campo-cat-nome").classList.add("campo-erro");
+      mostrarToast("Informe o nome da categoria.", "error");
+      return;
+    }
+
+    const idEmEdicao = categoriasState.categoriaEmEdicaoId;
+    if (idEmEdicao) {
+      const categoria = state.menu.categorias.find((c) => c.id === idEmEdicao);
+      categoria.nome = nome;
+      categoria.icone = icone;
+      mostrarToast(`Categoria "${nome}" atualizada.`, "success");
+    } else {
+      state.menu.categorias.push({ id: gerarIdCategoria(nome), nome, icone });
+      mostrarToast(`Categoria "${nome}" criada.`, "success");
+    }
+
+    salvarRascunho();
+    renderizarDashboard();
+    renderizarCategoriasLista();
+    popularFiltroCategorias();
+    popularCategoriasDoFormulario();
+    fecharModal($("#modal-categoria"));
+  }
+
+  function pedirConfirmacaoExclusaoCategoria(id) {
+    const categoria = state.menu.categorias.find((c) => c.id === id);
+    if (!categoria) return;
+    categoriasState.categoriaParaExcluirId = id;
+    const totalProdutos = contarProdutosDaCategoria(id);
+    const aviso = totalProdutos > 0
+      ? ` <strong>${totalProdutos} produto(s)</strong> estão nessa categoria e ficarão sem uma categoria válida.`
+      : "";
+    $("#modal-confirmar-categoria-texto").innerHTML =
+      `Tem certeza que deseja excluir <strong>${categoria.nome}</strong>?${aviso} Essa ação não pode ser desfeita.`;
+    abrirModal($("#modal-confirmar-categoria"));
+  }
+
+  function confirmarExclusaoCategoria() {
+    const id = categoriasState.categoriaParaExcluirId;
+    if (!id) return;
+    const indice = state.menu.categorias.findIndex((c) => c.id === id);
+    if (indice === -1) return;
+    const [removida] = state.menu.categorias.splice(indice, 1);
+
+    if (produtosState.categoriaFiltro === id) {
+      produtosState.categoriaFiltro = "";
+    }
+
+    salvarRascunho();
+    renderizarDashboard();
+    renderizarCategoriasLista();
+    popularFiltroCategorias();
+    popularCategoriasDoFormulario();
+    renderizarProdutosGrid();
+    fecharModal($("#modal-confirmar-categoria"));
+    mostrarToast(`Categoria "${removida.nome}" foi excluída.`, "success");
+    categoriasState.categoriaParaExcluirId = null;
+  }
+
+  function iniciarAbaCategorias() {
+    $("#btn-nova-categoria").addEventListener("click", () => abrirModalCategoria(null));
+
+    $("#btn-categoria-salvar").addEventListener("click", salvarCategoriaDoFormulario);
+    $("#btn-categoria-cancelar").addEventListener("click", () => fecharModal($("#modal-categoria")));
+    $("#modal-categoria-fechar").addEventListener("click", () => fecharModal($("#modal-categoria")));
+    $("#modal-categoria").addEventListener("click", (ev) => {
+      if (ev.target.id === "modal-categoria") fecharModal($("#modal-categoria"));
+    });
+    $("#form-categoria").addEventListener("submit", (ev) => ev.preventDefault());
+
+    $("#btn-confirmar-categoria-ok").addEventListener("click", confirmarExclusaoCategoria);
+    $("#btn-confirmar-categoria-cancelar").addEventListener("click", () => fecharModal($("#modal-confirmar-categoria")));
+    $("#modal-confirmar-categoria-fechar").addEventListener("click", () => fecharModal($("#modal-confirmar-categoria")));
+    $("#modal-confirmar-categoria").addEventListener("click", (ev) => {
+      if (ev.target.id === "modal-confirmar-categoria") fecharModal($("#modal-confirmar-categoria"));
+    });
+
+    document.addEventListener("keydown", (ev) => {
+      if (ev.key === "Escape") {
+        fecharModal($("#modal-categoria"));
+        fecharModal($("#modal-confirmar-categoria"));
+      }
+    });
+  }
+
+  /* =====================================================================
+     10. CONFIGURAÇÕES — dados da loja, contato, horário e Pix
+     -------------------------------------------------------------------
+     Preenche o formulário a partir de state.menu.restaurante e grava de
+     volta no mesmo objeto ao salvar — sem criar nem remover nenhum campo
+     que já exista na estrutura original do menu.json.
+     ===================================================================== */
+  function preencherFormularioConfig() {
+    const r = state.menu?.restaurante || {};
+    $("#cfg-nome").value = r.nome || "";
+    $("#cfg-slogan").value = r.slogan || "";
+    $("#cfg-logo").value = r.logo || "";
+    $("#cfg-banner").value = r.bannerTexto || "";
+    $("#cfg-whatsapp").value = r.whatsapp || "";
+    $("#cfg-taxa-entrega").value = r.taxaEntrega ?? "";
+    $("#cfg-pedido-minimo").value = r.pedidoMinimoEntrega ?? "";
+    $("#cfg-tempo-estimado").value = r.tempoEstimado || "";
+    $("#cfg-endereco-retirada").value = r.enderecoRetirada || "";
+    $("#cfg-horario-abre").value = r.horario?.abre || "";
+    $("#cfg-horario-fecha").value = r.horario?.fecha || "";
+
+    const diasFechado = new Set((r.horario?.diasFechado || []).map(String));
+    $$("#cfg-dias-fechado input[type=checkbox]").forEach((chk) => {
+      chk.checked = diasFechado.has(chk.value);
+    });
+
+    $("#cfg-pix-chave").value = r.pix?.chave || "";
+    $("#cfg-pix-tipo").value = r.pix?.tipo || "telefone";
+    $("#cfg-pix-titular").value = r.pix?.titular || "";
+    $("#cfg-pix-cidade").value = r.pix?.cidade || "";
+  }
+
+  function validarFormularioConfig() {
+    $("#campo-cfg-nome").classList.remove("campo-erro");
+    $("#campo-cfg-whatsapp").classList.remove("campo-erro");
+    let valido = true;
+
+    if (!$("#cfg-nome").value.trim()) {
+      $("#campo-cfg-nome").classList.add("campo-erro");
+      valido = false;
+    }
+    const whatsapp = $("#cfg-whatsapp").value.trim();
+    if (!whatsapp || !/^\d{10,14}$/.test(whatsapp)) {
+      $("#campo-cfg-whatsapp").classList.add("campo-erro");
+      valido = false;
+    }
+    return valido;
+  }
+
+  function salvarConfiguracoes() {
+    if (!validarFormularioConfig()) {
+      mostrarToast("Confira os campos destacados nas configurações.", "error");
+      return;
+    }
+
+    const r = state.menu.restaurante || (state.menu.restaurante = {});
+    r.nome = $("#cfg-nome").value.trim();
+    r.slogan = $("#cfg-slogan").value.trim();
+    r.logo = $("#cfg-logo").value.trim();
+    r.bannerTexto = $("#cfg-banner").value.trim();
+    r.whatsapp = $("#cfg-whatsapp").value.trim();
+    r.taxaEntrega = parseFloat($("#cfg-taxa-entrega").value) || 0;
+    r.pedidoMinimoEntrega = parseFloat($("#cfg-pedido-minimo").value) || 0;
+    r.tempoEstimado = $("#cfg-tempo-estimado").value.trim();
+    r.enderecoRetirada = $("#cfg-endereco-retirada").value.trim();
+
+    r.horario = r.horario || {};
+    r.horario.abre = $("#cfg-horario-abre").value;
+    r.horario.fecha = $("#cfg-horario-fecha").value;
+    r.horario.diasFechado = $$("#cfg-dias-fechado input[type=checkbox]:checked").map((c) => parseInt(c.value, 10));
+
+    r.pix = r.pix || {};
+    r.pix.chave = $("#cfg-pix-chave").value.trim();
+    r.pix.tipo = $("#cfg-pix-tipo").value;
+    r.pix.titular = $("#cfg-pix-titular").value.trim();
+    r.pix.cidade = $("#cfg-pix-cidade").value.trim();
+
+    salvarRascunho();
+    renderizarDashboard();
+    mostrarToast("Configurações da loja salvas com sucesso.", "success");
+  }
+
+  function iniciarAbaConfiguracoes() {
+    $("#btn-config-salvar").addEventListener("click", salvarConfiguracoes);
+    $("#form-config").addEventListener("submit", (ev) => ev.preventDefault());
+  }
+
+  /* =====================================================================
+     11. INICIALIZAÇÃO
      ===================================================================== */
   async function iniciar() {
     iniciarAbas();
     iniciarBarraSuperior();
+    iniciarAbaProdutos();
+    iniciarAbaCategorias();
+    iniciarAbaConfiguracoes();
 
     try {
       await carregarMenu();
       renderizarDashboard();
+      popularFiltroCategorias();
+      popularCategoriasDoFormulario();
+      renderizarProdutosGrid();
+      renderizarCategoriasLista();
+      preencherFormularioConfig();
     } catch (e) {
       console.error(e);
       mostrarToast("Não foi possível carregar o cardápio. Verifique data/menu.json.", "error", 6000);

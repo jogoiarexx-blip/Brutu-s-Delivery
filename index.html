@@ -33,6 +33,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="css/style.css">
+
+<!-- Configuração central da marca/tema (ver data/site-config.js) -->
+<script src="data/site-config.js"></script>
+<script>
+  (function () {
+    try {
+      var t = window.SITE_CONFIG && window.SITE_CONFIG.tema;
+      if (!t) return;
+      var root = document.documentElement.style;
+      if (t.accent) root.setProperty("--accent", t.accent);
+      if (t.accentDark) root.setProperty("--accent-dark", t.accentDark);
+      if (t.ember) root.setProperty("--ember", t.ember);
+    } catch (e) { /* se der qualquer erro, mantém as cores padrão do CSS */ }
+  })();
+</script>
 </head>
 <body>
 

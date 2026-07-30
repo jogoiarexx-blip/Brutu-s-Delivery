@@ -124,7 +124,15 @@ a{ color:inherit; }
 
 @media (max-width: 640px){
   .topbar .actions .btn-label{ display:none; }
-  .topbar .actions .btn{ padding: 10px; }
+  .topbar .actions .btn{ padding: 10px; flex: 0 0 auto; }
+  .topbar{ gap:8px; padding: 0 12px; }
+  .topbar .actions{
+    overflow-x:auto; -webkit-overflow-scrolling:touch;
+    max-width: 55vw;
+    scrollbar-width: none;
+  }
+  .topbar .actions::-webkit-scrollbar{ display:none; }
+  .topbar .brand .titles{ min-width:0; }
 }
 
 /* ---------- Layout geral ---------- */
@@ -652,9 +660,48 @@ a{ color:inherit; }
 .config-rodape{
   display:flex; justify-content:flex-end; gap:10px; margin-top: 4px;
 }
+
+/* ---------- Tela de senha ---------- */
+#tela-senha{
+  position:fixed; inset:0; background:var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  padding:24px; z-index:200;
+}
+#tela-senha .caixa{
+  background: var(--bg-card); border:1px solid var(--line);
+  border-radius: var(--radius); padding: 28px 24px;
+  width:100%; max-width:320px; text-align:center;
+}
+#tela-senha .caixa h1{
+  font-family: var(--font-display); text-transform:uppercase;
+  font-size:18px; margin:0 0 4px;
+}
+#tela-senha .caixa h1 span{ color:var(--accent); }
+#tela-senha .caixa p{ margin:0 0 16px; color:var(--text-dim); font-size:13px; }
+#tela-senha input{
+  width:100%; text-align:center; letter-spacing:4px; font-size:20px;
+  background: var(--bg-input); border:1px solid var(--line); border-radius:10px;
+  color:var(--text); padding:12px; margin-bottom:12px; font-family: var(--font-mono);
+}
+#tela-senha .erro{ color:var(--accent); font-size:12.5px; min-height:16px; margin-bottom:8px; }
+#app-painel-produtos{ display:none; }
+
 </style>
 </head>
 <body>
+
+<!-- ======================= Tela de senha ======================= -->
+<div id="tela-senha">
+  <div class="caixa">
+    <h1>BRUTU<span>'</span>S — Painel</h1>
+    <p>Digite a senha para acessar</p>
+    <input type="password" id="senha-input" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="••••">
+    <div class="erro" id="senha-erro"></div>
+    <button class="btn btn-primary" id="btn-entrar" style="width:100%;">Entrar</button>
+  </div>
+</div>
+
+<div id="app-painel-produtos">
 
 <!-- ======================= Tela de carregamento inicial ======================= -->
 <div id="loading-tela">
@@ -2053,6 +2100,51 @@ a{ color:inherit; }
 
   document.addEventListener("DOMContentLoaded", iniciar);
 })();
+</script>
+
+</div><!-- fim #app-painel-produtos -->
+
+<script>
+  /* ---------- Senha ---------- */
+  (function () {
+    const SENHA_CORRETA = "5625";
+    const KEY_SESSAO = "brutus-painel:autenticado";
+    const telaSenha = document.getElementById("tela-senha");
+    const appPainel = document.getElementById("app-painel-produtos");
+    const senhaInput = document.getElementById("senha-input");
+    const senhaErro = document.getElementById("senha-erro");
+    const btnEntrar = document.getElementById("btn-entrar");
+
+    function liberar() {
+      telaSenha.style.display = "none";
+      appPainel.style.display = "block";
+      senhaInput.blur();
+    }
+
+    function tentar() {
+      if (senhaInput.value.trim() === SENHA_CORRETA) {
+        try { sessionStorage.setItem(KEY_SESSAO, "1"); } catch (e) {}
+        liberar();
+      } else {
+        senhaErro.textContent = "Senha incorreta.";
+        senhaInput.value = "";
+        senhaInput.focus();
+      }
+    }
+
+    let jaAutenticado = false;
+    try { jaAutenticado = sessionStorage.getItem(KEY_SESSAO) === "1"; } catch (e) {}
+    if (jaAutenticado) {
+      liberar();
+    } else {
+      senhaInput.focus();
+    }
+
+    btnEntrar.addEventListener("click", tentar);
+    senhaInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") tentar();
+    });
+  })();
 </script>
 </body>
 </html>

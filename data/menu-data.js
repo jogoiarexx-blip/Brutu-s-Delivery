@@ -15,7 +15,7 @@ window.MENU_DATA = {
     },
     "taxaEntrega": 5,
     "pedidoMinimoEntrega": 0,
-    "tempoEstimado": "35-50 min",
+    "tempoEstimado": "40-60 min",
     "enderecoRetirada": "Diamantino Mauricio, 13 - Bairro Granvile",
     "horario": {
       "abre": "18:00",

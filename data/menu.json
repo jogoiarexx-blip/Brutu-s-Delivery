@@ -135,7 +135,10 @@
         "acomp-suco",
         "add-batata-frita"
       ],
-      "escolhaUnicaIds": ["acomp-guarana", "acomp-suco"],
+      "escolhaUnicaIds": [
+        "acomp-guarana",
+        "acomp-suco"
+      ],
       "escolhaUnicaTitulo": "Escolha o acompanhamento (grátis, um ou outro)",
       "destaque": true
     },
@@ -860,6 +863,87 @@
       "ingredientes": [],
       "adicionais": [],
       "destaque": false
+    },
+    {
+      "id": "b017",
+      "categoria": "bebidas",
+      "nome": "Guaraná Jaboti 250ml",
+      "descricao": "Guaraná Jaboti 250ml",
+      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Jaboti+250ml",
+      "preco": 3,
+      "ingredientes": [],
+      "adicionais": [],
+      "destaque": false
+    },
+    {
+      "id": "b018",
+      "categoria": "bebidas",
+      "nome": "Guaraná Mineiro Baby 250ml",
+      "descricao": "Guaraná Mineiro Baby 250ml",
+      "foto": "img/produtos/guarana-mineiro-baby-250ml.jpg",
+      "preco": 4,
+      "ingredientes": [],
+      "adicionais": [],
+      "destaque": false
+    },
+    {
+      "id": "b019",
+      "categoria": "bebidas",
+      "nome": "Coca-Cola 1L",
+      "descricao": "Coca-Cola 1L",
+      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Coca-Cola+1L",
+      "preco": 10,
+      "ingredientes": [],
+      "adicionais": [],
+      "destaque": false
+    },
+    {
+      "id": "b020",
+      "categoria": "bebidas",
+      "nome": "Coca-Cola Lata Zero 350ml",
+      "descricao": "Coca-Cola Lata Zero 350ml",
+      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Coca+Zero+Lata",
+      "preco": 6,
+      "ingredientes": [],
+      "adicionais": [],
+      "destaque": false
+    },
+    {
+      "id": "b021",
+      "categoria": "bebidas",
+      "nome": "Coca-Cola 2L Zero",
+      "descricao": "Coca-Cola 2L Zero",
+      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Coca+Zero+2L",
+      "preco": 14,
+      "ingredientes": [],
+      "adicionais": [],
+      "destaque": false
+    },
+    {
+      "id": "b022",
+      "categoria": "bebidas",
+      "nome": "Água sem Gás",
+      "descricao": "Água sem Gás",
+      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Agua+sem+Gas",
+      "preco": 2.5,
+      "ingredientes": [],
+      "adicionais": [],
+      "destaque": false
+    },
+    {
+      "id": "c006",
+      "categoria": "combos",
+      "nome": "Barca Brutu's",
+      "descricao": "1 Lanche Clássico, batata frita com cheddar e bacon e 1 Guaraná Mineiro Baby 250ml. A combinação perfeita para matar a sua fome!",
+      "foto": "img/produtos/barca-brutus.jpg",
+      "preco": 45.9,
+      "ingredientes": [
+        "1x Lanche Clássico",
+        "Batata frita com cheddar e bacon",
+        "1x Guaraná Mineiro Baby 250ml"
+      ],
+      "adicionais": [],
+      "destaque": true
     }
   ]
 }

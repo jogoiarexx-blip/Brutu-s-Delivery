@@ -156,7 +156,10 @@ window.MENU_DATA = {
         "2x Batata frita 200g",
         "Refrigerante 1L"
       ],
-      "adicionais": [],
+      "adicionais": [
+        "add-cheddar",
+        "add-hamburguer-extra"
+      ],
       "destaque": false
     },
     {
@@ -171,7 +174,10 @@ window.MENU_DATA = {
         "Batata frita 200g",
         "Refrigerante 1,5L"
       ],
-      "adicionais": [],
+      "adicionais": [
+        "add-cheddar",
+        "add-hamburguer-extra"
+      ],
       "destaque": true
     },
     {
@@ -186,7 +192,10 @@ window.MENU_DATA = {
         "Batata frita 200g",
         "Refrigerante 2L"
       ],
-      "adicionais": [],
+      "adicionais": [
+        "add-cheddar",
+        "add-hamburguer-extra"
+      ],
       "destaque": false
     },
     {
@@ -201,22 +210,39 @@ window.MENU_DATA = {
         "Batata com cheddar e bacon",
         "Guaraná Antártica 1L"
       ],
-      "adicionais": [],
+      "adicionais": [
+        "add-cheddar",
+        "add-hamburguer-extra"
+      ],
       "destaque": true
     },
     {
       "id": "c005",
       "categoria": "combos",
-      "nome": "Combo Brutal",
-      "descricao": "X Tudo Brutal (pão, 2 hambúrgueres, queijo, presunto, bacon, calabresa, ovo, batata palha, alface, tomate e molho da casa), batata com cheddar e bacon e 1 refrigerante lata Coca ou Guaraná.",
+      "nome": "Combo X Tudo Brutus",
+      "descricao": "Xtudo Brutus (pão, hambúrguer, salsicha, bacon, ovo, presunto, muçarela, catupiry, cheddar, alface, tomate e molho da casa), batata com cheddar e bacon e 1 refrigerante lata Coca ou Guaraná.",
       "foto": "img/produtos/combo-brutal.jpg",
       "preco": 59.9,
       "ingredientes": [
-        "X Tudo Brutal",
+        "Pão",
+        "Hambúrguer",
+        "Salsicha",
+        "Bacon",
+        "Ovo",
+        "Presunto",
+        "Muçarela",
+        "Catupiry",
+        "Cheddar",
+        "Alface",
+        "Tomate",
+        "Molho da casa",
         "Batata com cheddar e bacon",
         "Refrigerante lata (Coca ou Guaraná)"
       ],
-      "adicionais": [],
+      "adicionais": [
+        "add-cheddar",
+        "add-hamburguer-extra"
+      ],
       "destaque": true
     },
     {
@@ -944,7 +970,33 @@ window.MENU_DATA = {
         "Batata frita com cheddar e bacon",
         "1x Guaraná Mineiro Baby 250ml"
       ],
-      "adicionais": [],
+      "adicionais": [
+        "add-cheddar",
+        "add-hamburguer-extra"
+      ],
+      "destaque": true
+    },
+    {
+      "id": "l002",
+      "categoria": "lancamentos",
+      "nome": "Croc Catupiry Brutu's",
+      "descricao": "Pão, catupiry empanado, 2 fatias de cheddar, tomate, rúcula e molho da casa.",
+      "foto": "img/produtos/croc-catupiry-brutus.jpg",
+      "preco": 54.9,
+      "ingredientes": [
+        "Pão",
+        "Catupiry empanado",
+        "Cheddar (2 fatias)",
+        "Tomate",
+        "Rúcula",
+        "Molho da casa"
+      ],
+      "adicionais": [
+        "add-bacon",
+        "add-cheddar",
+        "add-ovo",
+        "add-cebola-caramelizada"
+      ],
       "destaque": true
     }
   ]

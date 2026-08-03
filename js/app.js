@@ -237,6 +237,19 @@
     $("#banner-tag").textContent = r.bannerTexto || "";
     $("#banner-tag").classList.toggle("hidden", !r.bannerTexto);
 
+    // Modo banner promocional: se "bannerImagem" estiver preenchido no
+    // menu.json, mostra a imagem ocupando todo o banner (ex: sorteio,
+    // datas comemorativas). Se estiver vazio/ausente, volta pro banner
+    // normal com mascote + texto.
+    const promoImg = $("#hero-banner-promo");
+    const temBannerImagem = !!r.bannerImagem;
+    $("#banner-wrap").classList.toggle("modo-imagem", temBannerImagem);
+    promoImg.classList.toggle("hidden", !temBannerImagem);
+    if (temBannerImagem) {
+      promoImg.src = r.bannerImagem;
+      promoImg.alt = r.bannerImagemAlt || `Promoção ${r.nome}`;
+    }
+
     renderStatusAberto();
     if (!state._statusInterval) {
       state._statusInterval = setInterval(renderStatusAberto, 60 * 1000);

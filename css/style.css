@@ -242,6 +242,29 @@ main{ max-width:720px; margin:0 auto; padding: 4px 16px 120px; position:relative
 }
 .banner-tag.hidden{ display:none; }
 
+/* ---------- Banner promocional (imagem cheia) ----------
+   Ativado automaticamente quando "bannerImagem" está preenchido em
+   data/menu.json > restaurante. Some com o mascote/texto e mostra a
+   imagem ocupando o banner inteiro. Pra voltar ao banner normal, basta
+   deixar "bannerImagem": "" no menu.json. */
+.hero-banner.modo-imagem{
+  padding:0;
+  background:none;
+  display:block;
+}
+.hero-banner.modo-imagem .hero-glow,
+.hero-banner.modo-imagem .hero-mascot,
+.hero-banner.modo-imagem .hero-text{
+  display:none;
+}
+.hero-banner-promo{
+  display:block;
+  width:100%;
+  height:auto;
+  border-radius: var(--radius-l);
+}
+.hero-banner-promo.hidden{ display:none; }
+
 @media (max-width:400px){
   .hero-banner{ gap:12px; padding:18px 14px; }
   .hero-mascot{ width:76px; height:76px; }

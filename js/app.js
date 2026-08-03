@@ -242,7 +242,7 @@
     // datas comemorativas). Se estiver vazio/ausente, volta pro banner
     // normal com mascote + texto.
     const promoImg = $("#hero-banner-promo");
-    const temBannerImagem = !!r.bannerImagem;
+    const temBannerImagem = !!(r.bannerImagem && r.bannerImagem.trim() !== "");
     $("#banner-wrap").classList.toggle("modo-imagem", temBannerImagem);
     promoImg.classList.toggle("hidden", !temBannerImagem);
     if (temBannerImagem) {

@@ -1047,6 +1047,29 @@ a{ color:inherit; }
         </div>
 
         <div class="config-secao">
+          <h3>🎉 Banner promocional</h3>
+          <div class="campo campo-disponivel-linha">
+            <div>
+              <strong>Ativar banner promocional</strong>
+              <div class="desc">Quando ativo, mostra uma imagem no lugar do banner normal (logo + texto).</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="cfg-banner-promo-ativo">
+              <span class="track"></span>
+            </label>
+          </div>
+          <div class="campo" id="campo-cfg-banner-promo-imagem">
+            <label for="cfg-banner-promo-imagem">Imagem do banner <span class="opcional">(caminho ou link)</span></label>
+            <input type="text" id="cfg-banner-promo-imagem" placeholder="img/promo/sorteio-dia-dos-pais.jpg">
+            <div class="msg-erro">Informe o caminho da imagem para ativar o banner promocional.</div>
+          </div>
+          <div class="campo" id="campo-cfg-banner-promo-alt" style="margin-bottom:0;">
+            <label for="cfg-banner-promo-alt">Texto alternativo <span class="opcional">(opcional)</span></label>
+            <input type="text" id="cfg-banner-promo-alt" placeholder="Ex.: Sorteio Dia dos Pais">
+          </div>
+        </div>
+
+        <div class="config-secao">
           <h3>📦 Contato e entrega</h3>
           <div class="campo" id="campo-cfg-whatsapp">
             <label for="cfg-whatsapp">WhatsApp <span class="opcional">(com DDI e DDD, só números)</span></label>
@@ -2454,6 +2477,10 @@ a{ color:inherit; }
     $("#cfg-slogan").value = r.slogan || "";
     $("#cfg-logo").value = r.logo || "";
     $("#cfg-banner").value = r.bannerTexto || "";
+    $("#cfg-banner-promo-ativo").checked = !!(r.bannerImagem && r.bannerImagem.trim() !== "");
+    $("#cfg-banner-promo-imagem").value = r.bannerImagem || "";
+    $("#cfg-banner-promo-alt").value = r.bannerImagemAlt || "";
+    atualizarVisibilidadeBannerPromo();
     $("#cfg-whatsapp").value = r.whatsapp || "";
     $("#cfg-taxa-entrega").value = r.taxaEntrega ?? "";
     $("#cfg-pedido-minimo").value = r.pedidoMinimoEntrega ?? "";
@@ -2473,9 +2500,16 @@ a{ color:inherit; }
     $("#cfg-pix-cidade").value = r.pix?.cidade || "";
   }
 
+  function atualizarVisibilidadeBannerPromo() {
+    const ativo = $("#cfg-banner-promo-ativo").checked;
+    $("#campo-cfg-banner-promo-imagem").classList.toggle("hidden", !ativo);
+    $("#campo-cfg-banner-promo-alt").classList.toggle("hidden", !ativo);
+  }
+
   function validarFormularioConfig() {
     $("#campo-cfg-nome").classList.remove("campo-erro");
     $("#campo-cfg-whatsapp").classList.remove("campo-erro");
+    $("#campo-cfg-banner-promo-imagem").classList.remove("campo-erro");
     let valido = true;
 
     if (!$("#cfg-nome").value.trim()) {
@@ -2485,6 +2519,10 @@ a{ color:inherit; }
     const whatsapp = $("#cfg-whatsapp").value.trim();
     if (!whatsapp || !/^\d{10,14}$/.test(whatsapp)) {
       $("#campo-cfg-whatsapp").classList.add("campo-erro");
+      valido = false;
+    }
+    if ($("#cfg-banner-promo-ativo").checked && !$("#cfg-banner-promo-imagem").value.trim()) {
+      $("#campo-cfg-banner-promo-imagem").classList.add("campo-erro");
       valido = false;
     }
     return valido;
@@ -2501,6 +2539,13 @@ a{ color:inherit; }
     r.slogan = $("#cfg-slogan").value.trim();
     r.logo = $("#cfg-logo").value.trim();
     r.bannerTexto = $("#cfg-banner").value.trim();
+    if ($("#cfg-banner-promo-ativo").checked) {
+      r.bannerImagem = $("#cfg-banner-promo-imagem").value.trim();
+      r.bannerImagemAlt = $("#cfg-banner-promo-alt").value.trim();
+    } else {
+      r.bannerImagem = "";
+      r.bannerImagemAlt = "";
+    }
     r.whatsapp = $("#cfg-whatsapp").value.trim();
     r.taxaEntrega = parseFloat($("#cfg-taxa-entrega").value) || 0;
     r.pedidoMinimoEntrega = parseFloat($("#cfg-pedido-minimo").value) || 0;
@@ -2526,6 +2571,7 @@ a{ color:inherit; }
   function iniciarAbaConfiguracoes() {
     $("#btn-config-salvar").addEventListener("click", salvarConfiguracoes);
     $("#form-config").addEventListener("submit", (ev) => ev.preventDefault());
+    $("#cfg-banner-promo-ativo").addEventListener("change", atualizarVisibilidadeBannerPromo);
   }
 
   /* =====================================================================

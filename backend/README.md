@@ -1,41 +1,44 @@
-# backend/ — Starter da futura API (Node.js + Express)
+# Backend — Brutu's Delivery API
 
-Esta pasta **não roda sozinha ainda** — é o esqueleto pronto pra quando vocês
-montarem a API de verdade do Brutu's Delivery (banco de dados, autenticação
-de clientes, etc.). Hoje o app funciona 100% estático (`index.html`,
-`painel.html`, `painel-produtos.html` + `data/menu.json`), sem servidor.
+API leve em **Node.js + Express** com persistência em **JSON no disco** (sem Mongo).
+Serve também o site estático da pasta pai.
 
-## O que já vem pronto aqui
-
-- `middleware/autenticacao.js` — checa token (JWT) e se o usuário é admin.
-- `middleware/donoDoRecurso.js` — **proteção contra IDOR**: garante que um
-  pedido só pode ser visto/editado pelo cliente dono dele ou por um admin.
-- `models/Pedido.js`, `models/Produto.js` — exemplos de schema (Mongoose),
-  já com ID em UUID em vez de sequencial.
-- `routes/pedidos.js` — rotas de pedido com a proteção aplicada em cada uma.
-- `routes/produtos.js` — padrão de rota admin-only (mesmo padrão vale para
-  categorias, combos e cupons).
-- `docs/protecao-idor-express.md` — guia completo explicando o porquê de
-  cada proteção e um checklist de teste antes de subir pra produção.
-
-## Para colocar pra rodar
+## Subir
 
 ```bash
 cd backend
-npm init -y
-npm install express mongoose jsonwebtoken uuid
+npm install
+npm start
 ```
 
-Crie um `server.js` na raiz desta pasta plugando as rotas:
+Abre em:
 
-```js
-const express = require('express');
-const app = express();
-app.use(express.json());
-app.use('/api/pedidos', require('./routes/pedidos'));
-app.use('/api/produtos', require('./routes/produtos'));
-app.listen(3000, () => console.log('API rodando na porta 3000'));
-```
+- Cardápio: http://localhost:3000/
+- Painel: http://localhost:3000/painel-produtos.html
+- Login padrão: **admin** / **5625** (arquivo `data/auth.json`)
 
-Quando chegar nessa etapa, me chama que eu ajudo a ligar tudo com o banco
-de dados que vocês escolherem e a migrar os dados de `data/menu.json` pra lá.
+## O que a API faz
+
+| Método | Rota | Auth | Função |
+|--------|------|------|--------|
+| POST | `/api/auth/login` | — | Login → token |
+| GET | `/api/menu` | — | Lê cardápio |
+| PUT | `/api/menu` | sim | Publica o menu.json do painel |
+| POST | `/api/pedidos` | — | Cliente cria pedido |
+| GET | `/api/pedidos` | sim | Lista pedidos |
+| GET | `/api/pedidos/resumo` | sim | Dashboard (hoje) |
+| PATCH | `/api/pedidos/:id/status` | sim | Status do pedido |
+
+## Painel
+
+1. Entre com usuário/senha
+2. Edite produtos/cupons/taxas
+3. Clique **Salvar** → grava no servidor
+4. Aba **Pedidos**: status (recebido → preparando → saiu → entregue)
+5. Polling a cada 12s + bip sonoro em pedido novo
+
+## Produção
+
+- Troque usuario, senha e tokenSecreto em `backend/data/auth.json`
+- Use HTTPS
+- Opcional: `PORT=8080 npm start`

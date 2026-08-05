@@ -48,6 +48,7 @@
     } catch (e) { /* se der qualquer erro, mantém as cores padrão do CSS */ }
   })();
 </script>
+<link rel="stylesheet" href="css/roleta.css">
 </head>
 <body>
 
@@ -107,6 +108,11 @@
       </div>
       <img class="hero-banner-promo hidden" id="hero-banner-promo" src="" alt="">
     </div>
+
+    <section class="destaques-section hidden" id="destaques-section">
+      <h2 class="section-title"><span class="selo" aria-hidden="true">⭐</span>Destaques</h2>
+      <div class="destaques-scroll" id="destaques-scroll"></div>
+    </section>
 
     <div id="categorias-container"><!-- seções de categoria/produtos geradas via JS --></div>
 
@@ -192,7 +198,26 @@
       <div class="cart-summary">
         <div class="summary-row"><span>Subtotal</span><span id="cart-subtotal">R$ 0,00</span></div>
         <div class="summary-row" id="cart-taxa-row"><span>Taxa de entrega</span><span id="cart-taxa">R$ 0,00</span></div>
+        <div class="summary-row hidden" id="cart-desconto-row"><span>Desconto <span id="cart-cupom-label"></span></span><span id="cart-desconto">− R$ 0,00</span></div>
         <div class="summary-row total"><span>Total</span><span class="valor" id="cart-total">R$ 0,00</span></div>
+      </div>
+
+      <div class="form-section" style="padding-top:0;">
+        <h3>Cupom de desconto</h3>
+        <div class="field cupom-field" style="display:flex;gap:8px;align-items:flex-start;">
+          <div style="flex:1;">
+            <input class="text-input" type="text" id="input-cupom" placeholder="Código do cupom" autocomplete="off" style="text-transform:uppercase;">
+            <span class="error-text" id="cupom-erro" style="display:none;"></span>
+            <span class="success-text" id="cupom-ok" style="display:none;color:#37c973;font-size:12.5px;"></span>
+          </div>
+          <button type="button" class="btn-add-mini" id="btn-aplicar-cupom" style="width:auto;padding:10px 14px;border-radius:10px;flex:0 0 auto;">Aplicar</button>
+        </div>
+      </div>
+
+      <div class="form-section hidden" id="secao-premios-roleta" style="padding-top:0;">
+        <h3>Usar um prêmio</h3>
+        <div id="lista-premios-checkout" class="premios-checkout-lista"></div>
+        <p class="roleta-hint" style="margin:8px 0 0;">Apenas 1 prêmio por pedido. Não pode combinar com outro prêmio.</p>
       </div>
 
       <!-- Entrega ou retirada -->
@@ -235,7 +260,9 @@
             </div>
             <div class="field">
               <label for="input-bairro">Bairro</label>
-              <input class="text-input" type="text" id="input-bairro" name="bairro" required>
+              <select class="text-input" id="input-bairro" name="bairro" required>
+                <option value="" disabled selected>Selecione seu bairro...</option>
+              </select>
               <span class="error-text">Obrigatório.</span>
             </div>
           </div>
@@ -266,7 +293,7 @@
 
           <div class="pix-info hidden" id="pix-info">
             <div class="pix-info-header">
-              <span>Pague com Pix (chave celular)</span>
+              <span id="pix-tipo-titulo">Pague com Pix (CPF)</span>
               <span class="pix-valor" id="pix-valor">R$ 0,00</span>
             </div>
             <div class="pix-qrcode-wrap">
@@ -274,13 +301,13 @@
             </div>
             <div class="pix-chave-row">
               <div>
-                <span class="pix-chave-label">Chave (celular)</span>
-                <span class="pix-chave-valor" id="pix-chave-display">(16) 98209-0884</span>
+                <span class="pix-chave-label" id="pix-tipo-label">Chave (CPF)</span>
+                <span class="pix-chave-valor" id="pix-chave-display">572.022.678-88</span>
               </div>
               <button type="button" class="pix-copy-btn" id="pix-copiar-chave">Copiar chave</button>
             </div>
             <button type="button" class="pix-copy-btn pix-copy-full" id="pix-copiar-codigo">Copiar código Pix (com valor)</button>
-            <p class="pix-hint">Titular: Joao Vitor Alcides Silva · Morro Agudo</p>
+            <p class="pix-hint">Titular: Ana Livia · Morro Agudo</p>
             <p class="pix-hint">Envie o comprovante junto com o pedido no WhatsApp.</p>
           </div>
         </div>
@@ -341,6 +368,54 @@
      sem precisar de servidor). Para editar o cardápio, mexa neste arquivo. -->
 <script src="data/menu-data.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+
+<!-- ======================= ROLETA DA SORTE ======================= -->
+<button type="button" id="roleta-open-btn" class="roleta-fab" aria-label="Roleta da Sorte">
+  🎰 <span>Roleta</span>
+</button>
+
+<div id="roleta-overlay" class="roleta-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="roleta-title">
+  <div class="roleta-sheet">
+    <button type="button" class="roleta-close" id="roleta-close" aria-label="Fechar">✕</button>
+    <h2 id="roleta-title">Roleta da Sorte</h2>
+    <p class="roleta-sub">Gire e ganhe prêmios exclusivos Brutu's!</p>
+
+    <div class="roleta-tel-row">
+      <input type="tel" id="roleta-tel-input" class="text-input" placeholder="Seu WhatsApp com DDD" inputmode="tel">
+      <button type="button" id="roleta-btn-tel" class="roleta-btn-sec">OK</button>
+    </div>
+
+    <div class="roleta-giros">Giros disponíveis: <strong id="roleta-giros-count">0</strong></div>
+
+    <div class="roleta-stage">
+      <div class="roleta-pointer" aria-hidden="true">▼</div>
+      <div class="roleta-roda-wrap">
+        <div id="roleta-roda" class="roleta-roda"></div>
+        <div id="roleta-labels" class="roleta-labels"></div>
+        <div class="roleta-centro">B</div>
+      </div>
+    </div>
+
+    <button type="button" id="roleta-btn-girar" class="roleta-btn-girar" disabled>Girar!</button>
+
+    <h3 class="roleta-meus-titulo">🎁 Meus Prêmios</h3>
+    <div id="roleta-meus-premios" class="roleta-meus-lista"></div>
+    <p class="roleta-hint">1 giro a cada pedido <strong>entregue</strong>. Prêmios valem 7 dias. Use 1 por pedido no checkout.</p>
+  </div>
+</div>
+
+<div id="roleta-win-modal" class="roleta-win-modal hidden" role="dialog" aria-modal="true">
+  <div class="roleta-win-caixa">
+    <div id="roleta-confetti" class="roleta-confetti"></div>
+    <div id="roleta-win-icone" class="roleta-win-icone">🎁</div>
+    <h3>Parabéns!</h3>
+    <p id="roleta-win-nome" class="roleta-win-nome">Prêmio</p>
+    <p class="roleta-win-msg">Seu prêmio foi salvo em <strong>Meus Prêmios</strong> e vale por 7 dias.</p>
+    <button type="button" id="roleta-win-depois" class="roleta-btn-girar">Resgatar depois</button>
+  </div>
+</div>
+
+<script src="js/roleta.js"></script>
 <script src="js/app.js" defer></script>
 </body>
 </html>

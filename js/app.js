@@ -43,8 +43,10 @@
     cart: [],                 // itens da sacola (ver shape em addToCart)
     tipoEntrega: "entrega",   // "entrega" | "retirada"
     formaPagamento: "PIX",    // "PIX" | "Dinheiro" | "Cartão"
+    cupomAplicado: null,      // { codigo, tipo, valor, descontoCalculado }
+    premioRoleta: null,       // prêmio selecionado no checkout { id, tipo, ... }
     produtoEmEdicao: null,    // produto aberto no modal
-    adicionaisSelecionados: new Set(),
+    adicionaisSelecionados: [],   // array de Set — um Set por lanche (combos com vários lanches têm 1 Set por lanche)
     quantidadeModal: 1,
   };
 
@@ -53,6 +55,17 @@
      ===================================================================== */
   const $ = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
+
+  // Embaralha um array (Fisher-Yates) sem alterar o original — usado para a
+  // ordem dos Destaques mudar sozinha a cada visita/recarregamento.
+  function embaralhar(lista) {
+    const arr = [...lista];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
 
   function formatarPreco(valor) {
     return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -274,11 +287,56 @@
     });
   }
 
+  // Carrossel "⭐ Destaques": junta os produtos marcados como destaque de
+  // todas as categorias e mostra numa faixa horizontal (arrastável). A ordem
+  // é sorteada a cada carregamento da página — não precisa reordenar na mão.
+  function renderDestaques() {
+    const secao = $("#destaques-section");
+    const scroll = $("#destaques-scroll");
+    const destaques = embaralhar(state.menu.produtos.filter((p) => p.destaque && produtoVisivelNoCardapio(p)));
+
+    if (!destaques.length) {
+      secao.classList.add("hidden");
+      return;
+    }
+
+    scroll.innerHTML = "";
+    destaques.forEach((produto) => {
+      const card = document.createElement("div");
+      card.className = "destaque-card";
+      card.setAttribute("role", "button");
+      card.setAttribute("tabindex", "0");
+      card.setAttribute("aria-label", `${produto.nome}, ${formatarPreco(produto.preco)}`);
+      card.innerHTML = `
+        <div class="destaque-photo">
+          <img src="${produto.foto}" alt="" loading="lazy">
+        </div>
+        <div class="destaque-nome">${produto.nome}</div>
+        <div class="destaque-preco">${formatarPreco(produto.preco)}</div>
+      `;
+      const abrir = () => abrirModalProduto(produto);
+      card.addEventListener("click", abrir);
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); abrir(); }
+      });
+      scroll.appendChild(card);
+    });
+
+    secao.classList.remove("hidden");
+  }
+
+  function produtoVisivelNoCardapio(p) {
+    if (p.disponivel === false) return false;
+    if (p.estoque !== undefined && p.estoque !== null && p.estoque !== "" && Number(p.estoque) <= 0) return false;
+    return true;
+  }
+
   function produtosFiltrados() {
     const termo = state.termoBusca.trim().toLowerCase();
-    if (!termo) return state.menu.produtos;
-    return state.menu.produtos.filter((p) =>
-      p.nome.toLowerCase().includes(termo) || p.descricao.toLowerCase().includes(termo)
+    const base = (state.menu.produtos || []).filter(produtoVisivelNoCardapio);
+    if (!termo) return base;
+    return base.filter((p) =>
+      (p.nome || "").toLowerCase().includes(termo) || (p.descricao || "").toLowerCase().includes(termo)
     );
   }
 
@@ -295,7 +353,14 @@
     semResultado.classList.add("hidden");
 
     state.menu.categorias.forEach((cat) => {
-      const produtosDaCategoria = produtos.filter((p) => p.categoria === cat.id);
+      // A categoria "Lançamentos" não depende só do campo `categoria`: qualquer
+      // produto marcado com `lancamento: true` aparece aqui automaticamente,
+      // mesmo mantendo sua categoria "de verdade" (ex: um hambúrguer gourmet
+      // continua em Hambúrgueres Gourmet e também aparece em Lançamentos).
+      const produtosDaCategoria =
+        cat.id === "lancamentos"
+          ? produtos.filter((p) => p.categoria === cat.id || p.lancamento)
+          : produtos.filter((p) => p.categoria === cat.id);
       if (produtosDaCategoria.length === 0) return;
 
       const secao = document.createElement("section");
@@ -328,6 +393,7 @@
     card.innerHTML = `
       <div class="product-photo">
         ${produto.destaque ? `<span class="badge-destaque selo">TOP</span>` : ""}
+        ${produto.lancamento ? `<span class="badge-lancamento">🆕 Novo</span>` : ""}
         <img src="${produto.foto}" alt="" loading="lazy">
       </div>
       <div class="product-info">
@@ -402,7 +468,8 @@
      ===================================================================== */
   function abrirModalProduto(produto) {
     state.produtoEmEdicao = produto;
-    state.adicionaisSelecionados = new Set();
+    const qtdLanches = produto.qtdLanches && produto.qtdLanches > 1 ? produto.qtdLanches : 1;
+    state.adicionaisSelecionados = Array.from({ length: qtdLanches }, () => new Set());
     state.quantidadeModal = 1;
 
     $("#product-modal-photo").src = produto.foto;
@@ -424,31 +491,42 @@
 
     // Adicionais (checkbox com preço). Alguns produtos têm um subgrupo de
     // "escolha única" (ex: acompanhamento grátis — ou um, ou outro), que é
-    // renderizado como radio em vez de checkbox.
+    // renderizado como radio em vez de checkbox. Combos com mais de um
+    // lanche (produto.qtdLanches > 1) repetem o bloco de adicionais uma vez
+    // por lanche, cada um com sua própria seleção independente.
     const adicionaisIds = produto.adicionais || [];
     const escolhaUnicaIds = (produto.escolhaUnicaIds || []).filter((id) => adicionaisIds.includes(id));
     const normalIds = adicionaisIds.filter((id) => !escolhaUnicaIds.includes(id));
     const adicionaisBlock = $("#product-adicionais-block");
     const adicionaisLista = $("#product-adicionais-list");
 
-    function renderAdicionaisLista() {
-      adicionaisLista.innerHTML = "";
+    function renderGrupoLanche(lancheIndex) {
+      const setSelecionados = state.adicionaisSelecionados[lancheIndex];
+      const wrap = document.createElement("div");
+      wrap.className = "addon-lanche-group";
+
+      if (qtdLanches > 1) {
+        const tituloLanche = document.createElement("div");
+        tituloLanche.className = "addon-group-title";
+        tituloLanche.textContent = `Lanche ${lancheIndex + 1}`;
+        wrap.appendChild(tituloLanche);
+      }
 
       if (escolhaUnicaIds.length) {
-        const jaSelecionado = escolhaUnicaIds.some((id) => state.adicionaisSelecionados.has(id));
-        if (!jaSelecionado) state.adicionaisSelecionados.add(escolhaUnicaIds[0]);
+        const jaSelecionado = escolhaUnicaIds.some((id) => setSelecionados.has(id));
+        if (!jaSelecionado) setSelecionados.add(escolhaUnicaIds[0]);
 
         if (produto.escolhaUnicaTitulo) {
           const tituloEl = document.createElement("div");
           tituloEl.className = "addon-group-title";
           tituloEl.textContent = produto.escolhaUnicaTitulo;
-          adicionaisLista.appendChild(tituloEl);
+          wrap.appendChild(tituloEl);
         }
 
         escolhaUnicaIds.forEach((id) => {
           const def = state.menu.adicionaisDisponiveis.find((a) => a.id === id);
           if (!def) return;
-          const marcado = state.adicionaisSelecionados.has(def.id);
+          const marcado = setSelecionados.has(def.id);
           const row = document.createElement("div");
           row.className = "addon-row";
           row.innerHTML = `
@@ -460,8 +538,8 @@
           `;
           const radioEl = $(".radio", row);
           const selecionar = () => {
-            escolhaUnicaIds.forEach((outroId) => state.adicionaisSelecionados.delete(outroId));
-            state.adicionaisSelecionados.add(def.id);
+            escolhaUnicaIds.forEach((outroId) => setSelecionados.delete(outroId));
+            setSelecionados.add(def.id);
             renderAdicionaisLista();
             atualizarPrecoModal();
           };
@@ -469,18 +547,19 @@
           radioEl.addEventListener("keydown", (e) => {
             if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selecionar(); }
           });
-          adicionaisLista.appendChild(row);
+          wrap.appendChild(row);
         });
       }
 
       normalIds.forEach((id) => {
         const def = state.menu.adicionaisDisponiveis.find((a) => a.id === id);
         if (!def) return;
+        const marcado = setSelecionados.has(def.id);
         const row = document.createElement("div");
         row.className = "addon-row";
         row.innerHTML = `
           <div class="addon-check">
-            <span class="checkbox" role="checkbox" aria-checked="false" data-addon-id="${def.id}" tabindex="0">
+            <span class="checkbox" role="checkbox" aria-checked="${marcado}" data-addon-id="${def.id}" tabindex="0">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a0e07" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
             </span>
             <span class="addon-label">${def.nome}</span>
@@ -491,16 +570,25 @@
         const toggle = () => {
           const ativo = checkboxEl.getAttribute("aria-checked") === "true";
           checkboxEl.setAttribute("aria-checked", String(!ativo));
-          if (ativo) state.adicionaisSelecionados.delete(def.id);
-          else state.adicionaisSelecionados.add(def.id);
+          if (ativo) setSelecionados.delete(def.id);
+          else setSelecionados.add(def.id);
           atualizarPrecoModal();
         };
         checkboxEl.addEventListener("click", toggle);
         checkboxEl.addEventListener("keydown", (e) => {
           if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
         });
-        adicionaisLista.appendChild(row);
+        wrap.appendChild(row);
       });
+
+      return wrap;
+    }
+
+    function renderAdicionaisLista() {
+      adicionaisLista.innerHTML = "";
+      for (let i = 0; i < qtdLanches; i++) {
+        adicionaisLista.appendChild(renderGrupoLanche(i));
+      }
     }
 
     if (adicionaisIds.length) {
@@ -525,9 +613,11 @@
   function precoUnitarioModal() {
     const produto = state.produtoEmEdicao;
     let preco = produto.preco;
-    state.adicionaisSelecionados.forEach((id) => {
-      const def = state.menu.adicionaisDisponiveis.find((a) => a.id === id);
-      if (def) preco += def.preco;
+    state.adicionaisSelecionados.forEach((setLanche) => {
+      setLanche.forEach((id) => {
+        const def = state.menu.adicionaisDisponiveis.find((a) => a.id === id);
+        if (def) preco += def.preco;
+      });
     });
     return preco;
   }
@@ -552,16 +642,22 @@
 
   function adicionarAoCarrinhoDoModal() {
     const produto = state.produtoEmEdicao;
-    const adicionaisEscolhidos = Array.from(state.adicionaisSelecionados).map((id) =>
-      state.menu.adicionaisDisponiveis.find((a) => a.id === id)
-    ).filter(Boolean);
+    const adicionaisPorLanche = state.adicionaisSelecionados.map((setLanche) =>
+      Array.from(setLanche).map((id) =>
+        state.menu.adicionaisDisponiveis.find((a) => a.id === id)
+      ).filter(Boolean)
+    );
+    const adicionaisEscolhidos = adicionaisPorLanche.flat(); // [{id, nome, preco}] — soma de todos os lanches
 
     const item = {
       uid: gerarUidItem(produto.id),
       produtoId: produto.id,
       nome: produto.nome,
       precoBase: produto.preco,
-      adicionais: adicionaisEscolhidos, // [{id, nome, preco}]
+      adicionais: adicionaisEscolhidos,
+      // Só guardamos a separação por lanche quando o produto tem mais de 1
+      // (evita mudar o formato dos itens de produtos simples já existentes).
+      adicionaisPorLanche: adicionaisPorLanche.length > 1 ? adicionaisPorLanche : null,
       observacao: $("#product-obs").value.trim(),
       quantidade: state.quantidadeModal,
     };
@@ -584,35 +680,181 @@
     return arredondarMoeda(bruto);
   }
 
-  // Bairros com taxa de entrega diferenciada (chave normalizada: sem acento, minúsculo)
-  const TAXAS_BAIRRO_ESPECIAIS = {
-    "centro": 5.0,
-    "lago azul": 10.0,
-    "benedetti": 6.0,
-    "alfredo benedeti": 6.0,
-    "alfredo benedetti": 6.0,
-    "ipe": 5.0,
-    "morada do lago": 8.0,
-  };
+  // Bairros/regiões: preferência para menu.taxasEntrega (editável no painel).
+  // Fallback para a lista legada caso o JSON ainda não tenha o campo.
+  const ZONAS_ENTREGA_FALLBACK = [
+    { nome: "Centro", taxa: 5.0 },
+    { nome: "Ipê", taxa: 5.0 },
+    { nome: "Monte Cristo", taxa: 5.0 },
+    { nome: "Jardim da Silveira", taxa: 5.0 },
+    { nome: "Sem Terra", taxa: 5.0 },
+    { nome: "Benedetti", taxa: 6.0 },
+    { nome: "Morada do Lago", taxa: 8.0 },
+    { nome: "Lago Azul", taxa: 10.0 },
+  ];
 
-  function normalizarBairro(txt) {
-    return removerAcentos(String(txt || "")).toLowerCase().trim();
+  function zonasEntregaAtuais() {
+    const lista = state.menu && Array.isArray(state.menu.taxasEntrega) ? state.menu.taxasEntrega : null;
+    if (lista && lista.length) {
+      return lista.map((z) => ({ nome: z.nome, taxa: Number(z.valor) || 0 }));
+    }
+    return ZONAS_ENTREGA_FALLBACK;
+  }
+
+  function popularSelectBairro() {
+    const select = $("#input-bairro");
+    if (!select) return;
+    const taxaPadrao = (state.menu && state.menu.restaurante.taxaEntrega) || 0;
+    const zonas = zonasEntregaAtuais();
+    const opcoes = [
+      `<option value="" disabled selected>Selecione seu bairro...</option>`,
+      ...zonas.map(
+        (z) => `<option value="${z.nome}" data-taxa="${z.taxa}">${z.nome} — ${formatarPreco(z.taxa)}</option>`
+      ),
+      `<option value="Outro" data-taxa="${taxaPadrao}">Outro bairro / cidade vizinha — ${formatarPreco(taxaPadrao)}</option>`,
+    ];
+    select.innerHTML = opcoes.join("");
   }
 
   function taxaEntregaAtual() {
     if (state.tipoEntrega === "retirada") return 0;
-    const bairroInput = $("#input-bairro");
-    const bairro = bairroInput ? normalizarBairro(bairroInput.value) : "";
-    if (bairro) {
-      for (const chave in TAXAS_BAIRRO_ESPECIAIS) {
-        if (bairro.includes(chave)) return TAXAS_BAIRRO_ESPECIAIS[chave];
-      }
-    }
+    const select = $("#input-bairro");
+    const opcaoSelecionada = select ? select.selectedOptions[0] : null;
+    const taxaData = opcaoSelecionada ? opcaoSelecionada.dataset.taxa : undefined;
+    if (taxaData !== undefined && taxaData !== "") return parseFloat(taxaData);
     return state.menu.restaurante.taxaEntrega || 0;
   }
 
+  function buscarCupomPorCodigo(codigo) {
+    const lista = (state.menu && state.menu.cupons) || [];
+    const norm = String(codigo || "").trim().toUpperCase();
+    return lista.find((c) => c.ativo !== false && String(c.codigo || "").toUpperCase() === norm) || null;
+  }
+
+  function calcularDescontoCupom() {
+    if (!state.cupomAplicado) return 0;
+    const sub = subtotalCarrinho();
+    const taxa = taxaEntregaAtual();
+    const base = sub + taxa;
+    const c = state.cupomAplicado;
+    let desc = 0;
+    if (c.tipo === "percentual") desc = (sub * (Number(c.valor) || 0)) / 100;
+    else desc = Number(c.valor) || 0;
+    if (desc > base) desc = base;
+    return arredondarMoeda(Math.max(0, desc));
+  }
+
+  function calcularDescontoRoleta() {
+    const p = state.premioRoleta;
+    if (!p || p.tipo !== "desconto_percentual") return 0;
+    const sub = subtotalCarrinho();
+    const desc = (sub * (Number(p.valor) || 0)) / 100;
+    return arredondarMoeda(Math.max(0, desc));
+  }
+
   function totalCarrinho() {
-    return arredondarMoeda(subtotalCarrinho() + taxaEntregaAtual());
+    return arredondarMoeda(Math.max(0,
+      subtotalCarrinho() + taxaEntregaAtual() - calcularDescontoCupom() - calcularDescontoRoleta()
+    ));
+  }
+
+  function atualizarSecaoPremiosCheckout() {
+    const secao = $("#secao-premios-roleta");
+    const lista = $("#lista-premios-checkout");
+    if (!secao || !lista) return;
+    const premios = (window.BRUTUS_ROLETA && window.BRUTUS_ROLETA.getPremiosDisponiveis)
+      ? window.BRUTUS_ROLETA.getPremiosDisponiveis()
+      : [];
+    if (!premios.length) {
+      secao.classList.add("hidden");
+      state.premioRoleta = null;
+      return;
+    }
+    secao.classList.remove("hidden");
+    const selectedId = state.premioRoleta && state.premioRoleta.id;
+    lista.innerHTML = `
+      <label class="premio-checkout-opt ${!selectedId ? "selected" : ""}">
+        <input type="radio" name="premio-roleta" value="" ${!selectedId ? "checked" : ""}>
+        <span>Não usar prêmio neste pedido</span>
+      </label>
+      ${premios.map((p) => `
+        <label class="premio-checkout-opt ${selectedId === p.id ? "selected" : ""}">
+          <input type="radio" name="premio-roleta" value="${p.id}" ${selectedId === p.id ? "checked" : ""}>
+          <span>${p.icone || "🎁"} ${p.nome}</span>
+        </label>
+      `).join("")}
+    `;
+    lista.querySelectorAll('input[name="premio-roleta"]').forEach((inp) => {
+      inp.addEventListener("change", () => {
+        const id = inp.value;
+        if (!id) {
+          state.premioRoleta = null;
+        } else {
+          state.premioRoleta = premios.find((x) => x.id === id) || null;
+        }
+        lista.querySelectorAll(".premio-checkout-opt").forEach((el) => {
+          el.classList.toggle("selected", el.querySelector("input")?.checked);
+        });
+        renderCarrinho();
+        renderCartBar();
+      });
+    });
+  }
+
+  function aplicarCupomDoInput() {
+    const input = $("#input-cupom");
+    const erro = $("#cupom-erro");
+    const ok = $("#cupom-ok");
+    if (!input) return;
+    const codigo = input.value.trim().toUpperCase();
+    if (erro) { erro.style.display = "none"; erro.textContent = ""; }
+    if (ok) { ok.style.display = "none"; ok.textContent = ""; }
+
+    if (!codigo) {
+      state.cupomAplicado = null;
+      renderCarrinho();
+      renderCartBar();
+      return;
+    }
+    const cupom = buscarCupomPorCodigo(codigo);
+    if (!cupom) {
+      state.cupomAplicado = null;
+      if (erro) { erro.style.display = "block"; erro.textContent = "Cupom inválido ou inativo."; }
+      renderCarrinho();
+      renderCartBar();
+      return;
+    }
+    const min = Number(cupom.minimo) || 0;
+    if (subtotalCarrinho() < min) {
+      state.cupomAplicado = null;
+      if (erro) {
+        erro.style.display = "block";
+        erro.textContent = `Pedido mínimo de ${formatarPreco(min)} para este cupom.`;
+      }
+      renderCarrinho();
+      renderCartBar();
+      return;
+    }
+    if (cupom.usoMaximo > 0 && (cupom.usos || 0) >= cupom.usoMaximo) {
+      state.cupomAplicado = null;
+      if (erro) { erro.style.display = "block"; erro.textContent = "Cupom esgotado."; }
+      renderCarrinho();
+      renderCartBar();
+      return;
+    }
+    state.cupomAplicado = {
+      codigo: cupom.codigo,
+      tipo: cupom.tipo,
+      valor: cupom.valor,
+      id: cupom.id,
+    };
+    if (ok) {
+      ok.style.display = "block";
+      ok.textContent = cupom.descricao || "Cupom aplicado!";
+    }
+    renderCarrinho();
+    renderCartBar();
+    mostrarToast("Cupom aplicado!", 1800, "sucesso");
   }
 
   function renderCartBar() {
@@ -642,7 +884,12 @@
     state.cart.forEach((item) => {
       const el = document.createElement("div");
       el.className = "cart-item";
-      const adicionaisTxt = item.adicionais.map((a) => `+ ${a.nome}`).join("<br>");
+      const adicionaisTxt = item.adicionaisPorLanche
+        ? item.adicionaisPorLanche
+            .map((grupo, i) => (grupo.length ? `Lanche ${i + 1}: ${grupo.map((a) => a.nome).join(", ")}` : null))
+            .filter(Boolean)
+            .join("<br>")
+        : item.adicionais.map((a) => `+ ${a.nome}`).join("<br>");
       el.innerHTML = `
         <span class="cart-item-qty">${item.quantidade}x</span>
         <div class="cart-item-info">
@@ -673,10 +920,25 @@
     $("#cart-subtotal").textContent = formatarPreco(subtotalCarrinho());
     $("#cart-taxa-row").classList.toggle("hidden", state.tipoEntrega === "retirada");
     $("#cart-taxa").textContent = formatarPreco(taxaEntregaAtual());
+    const desconto = calcularDescontoCupom() + calcularDescontoRoleta();
+    const rowDesc = $("#cart-desconto-row");
+    if (rowDesc) {
+      rowDesc.classList.toggle("hidden", desconto <= 0);
+      $("#cart-desconto").textContent = "− " + formatarPreco(desconto);
+      const lab = $("#cart-cupom-label");
+      if (lab) {
+        const parts = [];
+        if (state.cupomAplicado) parts.push(state.cupomAplicado.codigo);
+        if (state.premioRoleta && state.premioRoleta.tipo === "desconto_percentual") parts.push("Roleta");
+        lab.textContent = parts.length ? `(${parts.join(" + ")})` : "";
+      }
+    }
     $("#cart-total").textContent = formatarPreco(totalCarrinho());
-    $("#finalize-total").textContent = formatarPreco(totalCarrinho());
+    const fin = $("#finalize-total");
+    if (fin) fin.textContent = formatarPreco(totalCarrinho());
     atualizarTrocoCalculado();
     atualizarPix();
+    atualizarSecaoPremiosCheckout();
   }
 
   function removerDoCarrinho(uid) {
@@ -700,6 +962,14 @@
   }
 
   function abrirCarrinho() {
+    const tel = ($("#input-telefone")?.value || "").replace(/\D/g, "");
+    if (tel && window.BRUTUS_ROLETA && window.BRUTUS_ROLETA.refresh) {
+      try {
+        localStorage.setItem("brutus-roleta-tel", tel);
+      } catch (e) {}
+      window.BRUTUS_ROLETA.refresh();
+      setTimeout(() => atualizarSecaoPremiosCheckout(), 400);
+    }
     renderCarrinho();
     esconderAvisoPopupBloqueado();
     $("#cart-overlay").classList.remove("hidden");
@@ -790,6 +1060,31 @@
     return `${id}${tamanho}${valor}`;
   }
 
+  function formatarChavePix(chave, tipo) {
+    const bruto = String(chave || "").trim();
+    const digitos = bruto.replace(/\D/g, "");
+
+    if (tipo === "cpf" && digitos.length === 11) {
+      return `${digitos.slice(0, 3)}.${digitos.slice(3, 6)}.${digitos.slice(6, 9)}-${digitos.slice(9)}`;
+    }
+    if (tipo === "cnpj" && digitos.length === 14) {
+      return `${digitos.slice(0, 2)}.${digitos.slice(2, 5)}.${digitos.slice(5, 8)}/${digitos.slice(8, 12)}-${digitos.slice(12)}`;
+    }
+    if (tipo === "telefone") {
+      if (digitos.length === 11) return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`;
+      if (digitos.length === 10) return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 6)}-${digitos.slice(6)}`;
+    }
+    // email ou chave aleatória: exibe como cadastrado
+    return bruto;
+  }
+
+  function chavePixParaPayload(chave, tipo) {
+    const digitos = String(chave || "").replace(/\D/g, "");
+    if (tipo === "telefone") return `+55${digitos}`;
+    if (tipo === "cpf" || tipo === "cnpj") return digitos;
+    return String(chave || "").trim();
+  }
+
   function removerAcentos(txt) {
     return txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   }
@@ -820,6 +1115,14 @@
     return payloadSemCrc + crc16Pix(payloadSemCrc);
   }
 
+  const PIX_TIPO_LABEL = {
+    cpf: "CPF",
+    cnpj: "CNPJ",
+    telefone: "celular",
+    email: "e-mail",
+    aleatoria: "aleatória",
+  };
+
   function atualizarPix() {
     const pix = state.menu?.restaurante?.pix;
     const container = $("#pix-info");
@@ -832,12 +1135,18 @@
     container.classList.toggle("hidden", !visivel);
     if (!visivel) return;
 
+    const rotuloTipo = PIX_TIPO_LABEL[pix.tipo] || "Pix";
+    const tituloEl = $("#pix-tipo-titulo");
+    if (tituloEl) tituloEl.textContent = `Pague com Pix (${rotuloTipo})`;
+    const labelEl = $("#pix-tipo-label");
+    if (labelEl) labelEl.textContent = `Chave (${rotuloTipo})`;
+
     const total = totalCarrinho();
     $("#pix-valor").textContent = formatarPreco(total);
-    $("#pix-chave-display").textContent = "(16) 98209-0884";
+    $("#pix-chave-display").textContent = formatarChavePix(pix.chave, pix.tipo);
 
     const payload = gerarPayloadPix({
-      chave: `+55${pix.chave}`,
+      chave: chavePixParaPayload(pix.chave, pix.tipo),
       nome: pix.titular || state.menu.restaurante.nome,
       cidade: pix.cidade || "",
       valor: total,
@@ -871,7 +1180,7 @@
 
     $("#pix-copiar-chave")?.addEventListener("click", () => {
       const pix = state.menu?.restaurante?.pix;
-      if (pix) copiar(`+55${pix.chave}`, "Chave Pix copiada!");
+      if (pix) copiar(chavePixParaPayload(pix.chave, pix.tipo), "Chave Pix copiada!");
     });
 
     $("#pix-copiar-codigo")?.addEventListener("click", () => {
@@ -898,9 +1207,10 @@
 
     const inputBairro = $("#input-bairro");
     if (inputBairro) {
-      inputBairro.addEventListener("input", () => {
+      inputBairro.addEventListener("change", () => {
         renderCarrinho();
         renderCartBar();
+        atualizarPix();
       });
     }
   }
@@ -976,7 +1286,15 @@
     linhas.push(`🛒 *PEDIDO*`);
     state.cart.forEach((item) => {
       linhas.push(`${item.quantidade}x ${item.nome}`);
-      item.adicionais.forEach((a) => linhas.push(`   + ${a.nome}`));
+      if (item.adicionaisPorLanche) {
+        item.adicionaisPorLanche.forEach((grupo, i) => {
+          if (!grupo.length) return;
+          linhas.push(`   Lanche ${i + 1}:`);
+          grupo.forEach((a) => linhas.push(`      + ${a.nome}`));
+        });
+      } else {
+        item.adicionais.forEach((a) => linhas.push(`   + ${a.nome}`));
+      }
       if (item.observacao) linhas.push(`   Obs: ${item.observacao}`);
     });
     linhas.push("");
@@ -1000,6 +1318,18 @@
     linhas.push(`🧾 Subtotal: ${formatarPreco(subtotalCarrinho())}`);
     if (state.tipoEntrega === "entrega") {
       linhas.push(`🛵 Taxa de entrega: ${formatarPreco(taxaEntregaAtual())}`);
+    }
+    const descontoMsg = calcularDescontoCupom();
+    if (descontoMsg > 0 && state.cupomAplicado) {
+      linhas.push(`🏷️ Desconto (${state.cupomAplicado.codigo}): − ${formatarPreco(descontoMsg)}`);
+    }
+    if (state.premioRoleta) {
+      const pr = state.premioRoleta;
+      if (pr.tipo === "desconto_percentual") {
+        linhas.push(`🎰 Prêmio roleta (${pr.nome}): − ${formatarPreco(calcularDescontoRoleta())}`);
+      } else if (pr.tipo === "produto_gratis") {
+        linhas.push(`🎰 Prêmio roleta: ${pr.icone || ""} ${pr.nome} (grátis)`);
+      }
     }
     linhas.push(`💵 *Total: ${formatarPreco(totalCarrinho())}*`, "");
 
@@ -1149,6 +1479,68 @@
     ultimoPedidoTextoCompleto = mensagem;
     ultimoNumeroPedido = numeroPedido;
 
+    // Registro local + envio para API (quando o backend estiver no ar)
+    // Se prêmio for produto grátis, inclui no pedido como item R$ 0
+    let itensPedido = state.cart.map((i) => ({
+      nome: i.nome,
+      quantidade: i.quantidade,
+      preco: precoUnitarioItem(i),
+    }));
+    if (state.premioRoleta && state.premioRoleta.tipo === "produto_gratis") {
+      const menuProd = (state.menu.produtos || []).find((p) => p.id === state.premioRoleta.produtoId);
+      itensPedido.push({
+        nome: (menuProd && menuProd.nome) || state.premioRoleta.nome,
+        quantidade: 1,
+        preco: 0,
+        premioRoleta: true,
+      });
+    }
+
+    const snapshotPedido = {
+      id: "p-" + Date.now().toString(36),
+      numero: numeroPedido,
+      ts: Date.now(),
+      status: "recebido",
+      total: totalCarrinho(),
+      subtotal: subtotalCarrinho(),
+      taxa: taxaEntregaAtual(),
+      desconto: calcularDescontoCupom() + calcularDescontoRoleta(),
+      cupom: state.cupomAplicado ? state.cupomAplicado.codigo : null,
+      premioRoletaId: state.premioRoleta ? state.premioRoleta.id : null,
+      premioRoletaNome: state.premioRoleta ? state.premioRoleta.nome : null,
+      cliente: dadosCliente.nome,
+      telefone: dadosCliente.telefone,
+      tipoEntrega: state.tipoEntrega,
+      formaPagamento: state.formaPagamento,
+      endereco: [dadosCliente.endereco, dadosCliente.numero].filter(Boolean).join(", "),
+      bairro: dadosCliente.bairro || "",
+      observacao: dadosCliente.observacaoGeral || "",
+      itens: itensPedido,
+    };
+
+    // Marca prêmio como utilizado no servidor
+    if (state.premioRoleta && window.BRUTUS_ROLETA && window.BRUTUS_ROLETA.resgatarNoServidor) {
+      window.BRUTUS_ROLETA.resgatarNoServidor(
+        state.premioRoleta.id,
+        dadosCliente.telefone
+      ).catch(() => {});
+    }
+    try {
+      const PEDIDOS_KEY = "brutus-pedidos:v1";
+      const lista = JSON.parse(localStorage.getItem(PEDIDOS_KEY) || "[]");
+      lista.unshift(snapshotPedido);
+      localStorage.setItem(PEDIDOS_KEY, JSON.stringify(lista.slice(0, 500)));
+    } catch (e) {}
+    try {
+      const apiBase = (window.SITE_CONFIG && window.SITE_CONFIG.apiBase) ? window.SITE_CONFIG.apiBase.replace(/\/$/, "") : "";
+      // mesma origem quando o site é servido pelo backend
+      fetch(apiBase + "/api/pedidos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(snapshotPedido),
+      }).catch(() => {});
+    } catch (e) {}
+
     // Se o pedido completo estourar o limite seguro de URL, manda só um
     // resumo pelo link (com o número do pedido e o total) e copia o texto
     // completo pra área de transferência, avisando o cliente pra colar.
@@ -1285,6 +1677,13 @@
     $("#busca-input").addEventListener("input", (e) => {
       state.termoBusca = e.target.value;
       renderProdutos();
+      // Enquanto o cliente está buscando algo específico, escondemos os
+      // Destaques pra não competir com o resultado da busca.
+      if (state.termoBusca.trim()) {
+        $("#destaques-section").classList.add("hidden");
+      } else {
+        renderDestaques();
+      }
     });
 
     $("#product-close").addEventListener("click", fecharModalProduto);
@@ -1300,6 +1699,14 @@
     });
 
     $("#finalizar-btn").addEventListener("click", finalizarPedido);
+
+    $("#btn-aplicar-cupom")?.addEventListener("click", aplicarCupomDoInput);
+    $("#input-cupom")?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        aplicarCupomDoInput();
+      }
+    });
 
     const checkboxConfirmarEnvio = $("#checkbox-confirmar-envio");
     if (checkboxConfirmarEnvio) {
@@ -1375,6 +1782,7 @@
 
     renderCabecalho();
     renderCategoriaNav();
+    renderDestaques();
     renderProdutos();
     renderCartBar();
     observarSecoes();
@@ -1389,6 +1797,7 @@
     configurarEntregaRetirada();
     configurarFormaPagamento();
     configurarEventosGlobais();
+    popularSelectBairro();
     preencherDadosClienteSalvos();
     registrarServiceWorker();
     atualizarPix();

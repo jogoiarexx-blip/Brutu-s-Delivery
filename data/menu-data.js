@@ -1,16 +1,17 @@
-// Dados do cardápio para uso offline (abrir index.html com duplo clique).
-// Mantenha este arquivo IDÊNTICO ao menu.json sempre que o cardápio for alterado.
+// Gerado a partir de data/menu.json
 window.MENU_DATA = {
   "restaurante": {
     "nome": "Brutu's Delivery",
     "slogan": "O sabor é bruto, a fome não tem chance!",
     "logo": "icons/icon-512.png",
     "bannerTexto": "COMBO ESQUADRÃO · a partir de R$ 63,90",
+    "bannerImagem": "img/promo/sorteio-dia-dos-pais.jpg",
+    "bannerImagemAlt": "Sorteio Dia dos Pais - Brutu's Delivery",
     "whatsapp": "5516993319742",
     "pix": {
-      "chave": "16982090884",
-      "tipo": "telefone",
-      "titular": "Joao Vitor Alcides Silva",
+      "chave": "57202267888",
+      "tipo": "cpf",
+      "titular": "Ana Livia",
       "cidade": "MORRO AGUDO"
     },
     "taxaEntrega": 5,
@@ -142,7 +143,8 @@ window.MENU_DATA = {
         "acomp-suco"
       ],
       "escolhaUnicaTitulo": "Escolha o acompanhamento (grátis, um ou outro)",
-      "destaque": true
+      "destaque": true,
+      "lancamento": true
     },
     {
       "id": "c001",
@@ -160,7 +162,8 @@ window.MENU_DATA = {
         "add-cheddar",
         "add-hamburguer-extra"
       ],
-      "destaque": false
+      "destaque": false,
+      "qtdLanches": 2
     },
     {
       "id": "c002",
@@ -178,7 +181,8 @@ window.MENU_DATA = {
         "add-cheddar",
         "add-hamburguer-extra"
       ],
-      "destaque": true
+      "destaque": true,
+      "qtdLanches": 3
     },
     {
       "id": "c003",
@@ -196,7 +200,8 @@ window.MENU_DATA = {
         "add-cheddar",
         "add-hamburguer-extra"
       ],
-      "destaque": false
+      "destaque": false,
+      "qtdLanches": 4
     },
     {
       "id": "c004",
@@ -214,7 +219,8 @@ window.MENU_DATA = {
         "add-cheddar",
         "add-hamburguer-extra"
       ],
-      "destaque": true
+      "destaque": true,
+      "qtdLanches": 2
     },
     {
       "id": "c005",
@@ -997,7 +1003,98 @@ window.MENU_DATA = {
         "add-ovo",
         "add-cebola-caramelizada"
       ],
-      "destaque": true
+      "destaque": true,
+      "lancamento": true
+    },
+    {
+      "id": "l003",
+      "categoria": "lancamentos",
+      "nome": "Brutus Prime",
+      "descricao": "Pão, hambúrguer, muçarela, catupiry, cebola caramelizada, tomate e rúcula.",
+      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Brutus+Prime",
+      "preco": 27.99,
+      "ingredientes": [
+        "Pão",
+        "Hambúrguer",
+        "Muçarela",
+        "Catupiry",
+        "Cebola caramelizada",
+        "Tomate",
+        "Rúcula"
+      ],
+      "adicionais": [
+        "add-bacon",
+        "add-cheddar",
+        "add-ovo"
+      ],
+      "destaque": true,
+      "lancamento": true
+    }
+  ],
+  "taxasEntrega": [
+    {
+      "id": "centro",
+      "nome": "Centro",
+      "valor": 5
+    },
+    {
+      "id": "ipe",
+      "nome": "Ipê",
+      "valor": 5
+    },
+    {
+      "id": "monte-cristo",
+      "nome": "Monte Cristo",
+      "valor": 5
+    },
+    {
+      "id": "jardim-da-silveira",
+      "nome": "Jardim da Silveira",
+      "valor": 5
+    },
+    {
+      "id": "sem-terra",
+      "nome": "Sem Terra",
+      "valor": 5
+    },
+    {
+      "id": "benedetti",
+      "nome": "Benedetti",
+      "valor": 6
+    },
+    {
+      "id": "morada-do-lago",
+      "nome": "Morada do Lago",
+      "valor": 8
+    },
+    {
+      "id": "lago-azul",
+      "nome": "Lago Azul",
+      "valor": 10
+    }
+  ],
+  "cupons": [
+    {
+      "id": "bemvindo10",
+      "codigo": "BEMVINDO10",
+      "tipo": "percentual",
+      "valor": 10,
+      "minimo": 40,
+      "ativo": true,
+      "usoMaximo": 0,
+      "usos": 0,
+      "descricao": "10% de desconto em pedidos a partir de R$ 40"
+    },
+    {
+      "id": "entrega5",
+      "codigo": "ENTREGA5",
+      "tipo": "fixo",
+      "valor": 5,
+      "minimo": 0,
+      "ativo": true,
+      "usoMaximo": 0,
+      "usos": 0,
+      "descricao": "R$ 5 de desconto na taxa de entrega / pedido"
     }
   ]
 };

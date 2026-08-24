@@ -1,18 +1,19 @@
-// Gerado a partir de data/menu.json
+// Gerado automaticamente a partir de data/menu.json
 window.MENU_DATA = {
   "restaurante": {
     "nome": "Brutu's Delivery",
     "slogan": "O sabor é bruto, a fome não tem chance!",
     "logo": "icons/icon-512.png",
     "bannerTexto": "COMBO ESQUADRÃO · a partir de R$ 63,90",
-    "bannerImagem": "img/promo/sorteio-dia-dos-pais.jpg",
-    "bannerImagemAlt": "Sorteio Dia dos Pais - Brutu's Delivery",
+    "bannerImagem": "",
+    "bannerImagemAlt": "",
     "whatsapp": "5516993319742",
     "pix": {
-      "chave": "57202267888",
-      "tipo": "cpf",
-      "titular": "Ana Livia",
-      "cidade": "MORRO AGUDO"
+      "chave": "",
+      "tipo": "cnpj",
+      "titular": "",
+      "cidade": "MORRO AGUDO",
+      "protegido": true
     },
     "taxaEntrega": 5,
     "pedidoMinimoEntrega": 0,
@@ -21,7 +22,9 @@ window.MENU_DATA = {
     "horario": {
       "abre": "18:00",
       "fecha": "23:30",
-      "diasFechado": []
+      "diasFechado": [
+        3
+      ]
     }
   },
   "categorias": [
@@ -444,6 +447,30 @@ window.MENU_DATA = {
       "destaque": false
     },
     {
+      "id": "g009",
+      "categoria": "hamburgueres-gourmet",
+      "nome": "BRUTU'S PICKLES",
+      "descricao": "Pão macio, hambúrguer artesanal, cheddar cremoso, cebola roxa, picles crocantes e molho especial de picles.",
+      "foto": "https://placehold.co/600x450/241c17/ffb703?text=BRUTUS+PICKLES",
+      "preco": 38.9,
+      "ingredientes": [
+        "Pão macio",
+        "Hambúrguer artesanal",
+        "Cheddar cremoso",
+        "Cebola roxa",
+        "Picles crocantes",
+        "Molho especial de picles"
+      ],
+      "adicionais": [
+        "add-bacon",
+        "add-cheddar",
+        "add-ovo",
+        "add-cebola-caramelizada",
+        "add-hamburguer-extra"
+      ],
+      "destaque": true
+    },
+    {
       "id": "e001",
       "categoria": "especiais",
       "nome": "Duplo Burger Brutus",
@@ -495,7 +522,7 @@ window.MENU_DATA = {
       "id": "e003",
       "categoria": "especiais",
       "nome": "Xtudo Brutus",
-      "descricao": "Pão, hambúrguer, salsicha, bacon, ovo, presunto, muçarela, catupiry, cheddar, alface, tomate e molho da casa.",
+      "descricao": "Pão, hambúrguer, salsicha, bacon, ovo, presunto, muçarela, catupiry, cheddar, alface, tomate, batata palha e molho da casa.",
       "foto": "img/produtos/xtudo-brutus.jpg",
       "preco": 42.9,
       "ingredientes": [
@@ -510,6 +537,7 @@ window.MENU_DATA = {
         "Cheddar",
         "Alface",
         "Tomate",
+        "Batata palha",
         "Molho da casa"
       ],
       "adicionais": [
@@ -983,6 +1011,26 @@ window.MENU_DATA = {
       "destaque": true
     },
     {
+      "id": "c007",
+      "categoria": "combos",
+      "nome": "Brutu's Barca Viking",
+      "descricao": "2 Lanches Clássicos, batata com cheddar e bacon, 10 Nuggets e 1 Refrigerante 2L. Uma barca cheia pra matar a fome de verdade!",
+      "foto": "img/produtos/barca-viking-brutus.jpg",
+      "preco": 99.9,
+      "ingredientes": [
+        "2x Lanche Clássico",
+        "Batata com cheddar e bacon",
+        "10x Nuggets",
+        "1x Refrigerante 2L"
+      ],
+      "adicionais": [
+        "add-cheddar",
+        "add-hamburguer-extra"
+      ],
+      "destaque": true,
+      "qtdLanches": 2
+    },
+    {
       "id": "l002",
       "categoria": "lancamentos",
       "nome": "Croc Catupiry Brutu's",
@@ -1026,6 +1074,85 @@ window.MENU_DATA = {
         "add-bacon",
         "add-cheddar",
         "add-ovo"
+      ],
+      "destaque": true,
+      "lancamento": true
+    },
+    {
+      "id": "l004",
+      "categoria": "lancamentos",
+      "nome": "Costela Brutos",
+      "descricao": "Pão, hambúrguer, costela desfiada, muçarela, catupiry, alface, tomate e molho da casa.",
+      "foto": "img/produtos/costela-brutos.jpg",
+      "preco": 38.9,
+      "ingredientes": [
+        "Pão",
+        "Hambúrguer",
+        "Costela desfiada",
+        "Muçarela",
+        "Catupiry",
+        "Alface",
+        "Tomate",
+        "Molho da casa"
+      ],
+      "adicionais": [
+        "add-bacon",
+        "add-cheddar",
+        "add-ovo",
+        "add-cebola-caramelizada",
+        "add-hamburguer-extra"
+      ],
+      "destaque": true,
+      "lancamento": true
+    },
+    {
+      "id": "l005",
+      "categoria": "lancamentos",
+      "nome": "Brutu's Veggie",
+      "descricao": "Pão macio, 2 catupirys empanados, muçarela e cheddar, cebola roxa, rúcula, tomate e molho da casa.",
+      "foto": "img/produtos/brutus-veggie.jpg",
+      "preco": 38.9,
+      "ingredientes": [
+        "Pão macio",
+        "Catupiry empanado (2 unidades)",
+        "Muçarela",
+        "Cheddar",
+        "Cebola roxa",
+        "Rúcula",
+        "Tomate",
+        "Molho da casa"
+      ],
+      "adicionais": [
+        "add-cheddar",
+        "add-cebola-caramelizada"
+      ],
+      "destaque": true,
+      "lancamento": true
+    },
+    {
+      "id": "l006",
+      "categoria": "lancamentos",
+      "nome": "King Costela Brutus",
+      "descricao": "Pão selado na manteiga, hambúrguer blend 180g, costela desfiada, bacon, cebola caramelizada, fatia de cheddar, anel de cebola, catupiry e molho da casa.",
+      "foto": "img/produtos/king-costela-brutus.jpg",
+      "preco": 46.9,
+      "ingredientes": [
+        "Pão",
+        "Hambúrguer (blend 180g)",
+        "Costela desfiada",
+        "Bacon",
+        "Cebola caramelizada",
+        "Cheddar",
+        "Anel de cebola",
+        "Catupiry",
+        "Molho da casa"
+      ],
+      "adicionais": [
+        "add-bacon",
+        "add-cheddar",
+        "add-ovo",
+        "add-cebola-caramelizada",
+        "add-hamburguer-extra"
       ],
       "destaque": true,
       "lancamento": true
@@ -1075,26 +1202,26 @@ window.MENU_DATA = {
   ],
   "cupons": [
     {
-      "id": "bemvindo10",
-      "codigo": "BEMVINDO10",
+      "id": "bemvindo2",
+      "codigo": "BEMVINDO2",
       "tipo": "percentual",
-      "valor": 10,
+      "valor": 2,
       "minimo": 40,
       "ativo": true,
       "usoMaximo": 0,
       "usos": 0,
-      "descricao": "10% de desconto em pedidos a partir de R$ 40"
+      "descricao": "2% de desconto em pedidos a partir de R$ 40"
     },
     {
       "id": "entrega5",
       "codigo": "ENTREGA5",
       "tipo": "fixo",
       "valor": 5,
-      "minimo": 0,
+      "minimo": 100,
       "ativo": true,
       "usoMaximo": 0,
       "usos": 0,
-      "descricao": "R$ 5 de desconto na taxa de entrega / pedido"
+      "descricao": "R$ 5 de desconto na taxa de entrega / pedido (mínimo R$ 100)"
     }
   ]
 };

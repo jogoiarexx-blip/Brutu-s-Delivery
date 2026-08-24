@@ -9,17 +9,17 @@
 
 <!-- Preview do link (aparece quando o link é colado no WhatsApp, Instagram etc.)
      IMPORTANTE: og:image precisa ser uma URL ABSOLUTA quando o site estiver
-     hospedado (ex: https://seudominio.com/icons/og-image.png), senão o
+     hospedado (ex: https://seudominio.com/icons/og-image.jpg), senão o
      WhatsApp não consegue buscar a imagem. Troque a linha abaixo depois de
      publicar o site — veja o README. -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="Brutu's Delivery — Cardápio">
 <meta property="og:description" content="Peça pelo cardápio digital do Brutu's Delivery e receba tudo quentinho em casa.">
-<meta property="og:image" content="icons/og-image.png">
+<meta property="og:image" content="icons/og-image.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Brutu's Delivery — Cardápio">
 <meta name="twitter:description" content="Peça pelo cardápio digital do Brutu's Delivery e receba tudo quentinho em casa.">
-<meta name="twitter:image" content="icons/og-image.png">
+<meta name="twitter:image" content="icons/og-image.jpg">
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
@@ -186,6 +186,7 @@
     <div id="cart-empty-view" class="empty-cart hidden">
       <div class="selo" aria-hidden="true">B</div>
       <p>Sua sacola está vazia.<br>Adicione produtos do cardápio para continuar.</p>
+      <div id="cart-ultimo-pedido" class="hidden"></div>
     </div>
 
     <div id="cart-filled-view">
@@ -302,7 +303,7 @@
             <div class="pix-chave-row">
               <div>
                 <span class="pix-chave-label" id="pix-tipo-label">Chave (CPF)</span>
-                <span class="pix-chave-valor" id="pix-chave-display">572.022.678-88</span>
+                <span class="pix-chave-valor" id="pix-chave-display">—</span>
               </div>
               <button type="button" class="pix-copy-btn" id="pix-copiar-chave">Copiar chave</button>
             </div>

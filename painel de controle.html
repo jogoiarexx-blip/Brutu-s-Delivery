@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel — Brutu's Delivery</title>
+<title>Painel de Controle — Brutu's Delivery</title>
 <meta name="robots" content="noindex, nofollow">
 <style>
 /* =========================================================================
@@ -187,15 +187,43 @@ a{ color:inherit; }
 }
 
 @media (max-width: 860px){
-  .shell-sidebar{ flex-direction: column; }
-  .sidebar-nav.tabs{
-    flex-direction: row;
-    width: 100%;
-    position: static;
-    margin-bottom: 18px;
+  .shell-sidebar{
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 12px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
-  .sidebar-nav .tab-btn{ width: auto; }
-  .sidebar-nav .tab-btn span{ display:none; }
+  /* Em coluna o flex-basis 220px virava ALTURA — resetar para não esticar os botões */
+  .sidebar-nav.tabs{
+    flex: 0 0 auto;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: 100%;
+    max-width: 100%;
+    position: static;
+    top: auto;
+    margin-bottom: 4px;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .sidebar-nav.tabs::-webkit-scrollbar{ display: none; }
+  .sidebar-nav .tab-btn{
+    width: auto;
+    height: auto;
+    min-height: 42px;
+    min-width: 42px;
+    flex: 0 0 auto;
+    padding: 10px 12px;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .sidebar-nav .tab-btn span{ display: none; }
 }
 
 .tab-panel{ display:none; }
@@ -408,8 +436,15 @@ a{ color:inherit; }
 .hidden{ display:none !important; }
 
 @media (max-width: 560px){
-  .stat-card .stat-value{ font-size: 26px; }
+  .stat-card .stat-value{ font-size: 22px; }
+  .stat-card{ padding: 14px; }
+  .stats-grid{
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
   .topbar .brand .sub{ display:none; }
+  .shell{ padding: 0 12px; }
+  .section-title{ margin-bottom: 10px; }
 }
 
 /* =========================================================================
@@ -637,7 +672,6 @@ a{ color:inherit; }
 }
 .campo label .opcional{ text-transform:none; font-weight:400; color: var(--text-faint); }
 .campo input[type="text"],
-.campo input[type="tel"],
 .campo input[type="number"],
 .campo input[type="url"],
 .campo select,
@@ -758,200 +792,6 @@ a{ color:inherit; }
 .campo-icone-linha{ display:flex; gap:10px; align-items:flex-start; }
 .campo-icone-linha .campo{ margin-bottom:0; }
 .campo-icone-linha input#f-cat-icone{ width:76px; text-align:center; font-size:20px; padding:11px 8px; }
-
-
-/* =========================================================================
-   MOBILE APP LAYOUT — somente celular/tablet estreito
-   Mantém o desktop intacto e transforma o painel em uma interface de app.
-   ========================================================================= */
-@media (max-width: 768px){
-  :root{ --topbar-h: 58px; }
-
-  body{
-    padding-bottom: 82px;
-    overflow-x: hidden;
-  }
-
-  /* Cabeçalho compacto */
-  .topbar{
-    height: var(--topbar-h);
-    padding: 0 10px 0 12px;
-    gap: 8px;
-  }
-  .topbar .brand{ gap: 8px; }
-  .topbar .brand img{
-    width: 32px; height: 32px; border-radius: 8px;
-  }
-  .topbar .brand h1{ font-size: 16px; }
-  .topbar .brand .sub{ display:none; }
-  .topbar .actions{
-    gap: 5px;
-    max-width: none;
-    overflow: visible;
-  }
-  .topbar .actions .btn{
-    width: 38px; height: 38px;
-    padding: 0;
-    border-radius: 11px;
-    font-size: 15px;
-  }
-  .topbar .actions .btn-label{ display:none; }
-  /* Importar/exportar ficam no painel, mas sem roubar o topo no celular */
-  #btn-importar, #btn-exportar{ display:none; }
-
-  /* Conteúdo ocupa a largura útil */
-  .shell{ padding-left: 12px; padding-right: 12px; }
-  .shell-sidebar{
-    display:block;
-    max-width:none;
-    padding-top: 14px;
-  }
-  .sidebar-content{ width:100%; min-width:0; }
-
-  /* Menu vira barra inferior de aplicativo */
-  .sidebar-nav.tabs{
-    position: fixed;
-    z-index: 120;
-    left: 0; right: 0; bottom: 0;
-    width: 100%;
-    height: 68px;
-    min-height: 68px;
-    margin: 0;
-    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
-    display:flex;
-    flex-direction:row;
-    align-items:center;
-    gap: 4px;
-    overflow-x:auto;
-    overflow-y:hidden;
-    overscroll-behavior-x:contain;
-    scroll-snap-type:x proximity;
-    background: rgba(20,16,13,.97);
-    backdrop-filter: blur(14px);
-    border-top: 1px solid var(--line);
-    box-shadow: 0 -8px 28px rgba(0,0,0,.35);
-    scrollbar-width:none;
-  }
-  .sidebar-nav.tabs::-webkit-scrollbar{ display:none; }
-  .sidebar-nav .tab-btn{
-    flex: 0 0 64px;
-    width:64px;
-    min-width:64px;
-    height:54px;
-    min-height:54px;
-    max-height:54px;
-    padding:5px 3px;
-    margin:0;
-    border:0;
-    border-radius:12px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:3px;
-    font-size:19px;
-    line-height:1;
-    scroll-snap-align:start;
-    background:transparent;
-  }
-  .sidebar-nav .tab-btn span:not(.badge-novos-pedidos){
-    display:block;
-    width:100%;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-    text-align:center;
-    font-size:9px;
-    line-height:1.1;
-    font-weight:700;
-    color:var(--text-faint);
-  }
-  .sidebar-nav .tab-btn.active{
-    background:var(--accent-soft);
-    color:var(--accent);
-    border:1px solid rgba(255,90,31,.3);
-  }
-  .sidebar-nav .tab-btn.active span:not(.badge-novos-pedidos){ color:var(--accent); }
-  .badge-novos-pedidos{
-    position:absolute;
-    transform:translate(18px,-17px);
-  }
-
-  /* Dashboard mais compacto */
-  .section-title{
-    font-size:12px;
-    margin: 0 0 10px;
-    letter-spacing:.08em;
-  }
-  .stats-grid,
-  .stats-grid.stats-grid-pedidos{
-    grid-template-columns: repeat(2, minmax(0,1fr));
-    gap:10px;
-    margin-bottom:18px;
-  }
-  .stat-card{
-    min-width:0;
-    min-height:132px;
-    padding:14px 13px;
-    border-radius:15px;
-    box-shadow: 0 4px 16px rgba(0,0,0,.24);
-  }
-  .stat-card:hover{ transform:none; }
-  .stat-card .stat-icon{ font-size:19px; margin-bottom:8px; }
-  .stat-card .stat-value{
-    font-size:26px;
-    overflow-wrap:anywhere;
-  }
-  .stat-card .stat-label{
-    font-size:11px;
-    line-height:1.3;
-  }
-  .stat-card .stat-sub{ font-size:10.5px; }
-  #stat-produto-mais-vendido{
-    font-size:14px !important;
-    line-height:1.2;
-  }
-
-  .dashboard-aviso-pedidos{
-    padding:10px 12px;
-    margin-bottom:18px;
-    font-size:11.5px;
-  }
-  .dashboard-grafico-vazio,
-  .empty-card{
-    padding:24px 14px;
-    margin-bottom:18px;
-  }
-
-  /* Ações e formulários */
-  .quick-actions{ grid-template-columns:1fr; gap:9px; }
-  .quick-action{ padding:12px; }
-  .produtos-toolbar{ gap:8px; }
-  .busca-caixa,
-  .filtro-categoria{ flex:1 1 100%; min-width:0; }
-  .combo-builder{ padding:14px; }
-
-  /* Evita qualquer elemento estourando a tela */
-  .tab-panel,
-  .sidebar-content,
-  .stats-grid,
-  .stat-card,
-  .empty-card,
-  .dashboard-grafico-vazio{ max-width:100%; }
-
-  /* Toast acima da barra inferior */
-  #toast-stack{ bottom:82px; }
-}
-
-@media (max-width: 380px){
-  .topbar .actions .btn{ width:35px; height:35px; }
-  .stats-grid,
-  .stats-grid.stats-grid-pedidos{ gap:8px; }
-  .stat-card{ padding:12px 11px; min-height:124px; }
-  .stat-card .stat-value{ font-size:23px; }
-  .sidebar-nav .tab-btn{ flex-basis:60px; width:60px; min-width:60px; }
-}
-
 </style>
 
 <style>
@@ -1073,106 +913,6 @@ a{ color:inherit; }
 .pedido-item .pi-hora{ font-size:12px; color: var(--text-faint); font-family: var(--font-mono); }
 .pedido-item .pi-total{ color: var(--accent); font-family: var(--font-display); font-size:18px; }
 .pedido-item .pi-meta{ font-size:12.5px; color: var(--text-dim); margin-top:6px; line-height:1.45; }
-.pedido-item.pedido-novo{
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-soft), 0 8px 24px rgba(255,90,31,.18);
-  animation: pedidoPulse 1.6s ease-in-out 3;
-}
-@keyframes pedidoPulse{
-  0%,100%{ box-shadow: 0 0 0 2px var(--accent-soft); }
-  50%{ box-shadow: 0 0 0 4px rgba(255,90,31,.35); }
-}
-.pedidos-kanban{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
-  margin-top: 12px;
-}
-.pedidos-col{
-  background: var(--bg-elevated);
-  border:1px solid var(--line);
-  border-radius: var(--radius-m);
-  padding: 10px;
-  min-height: 120px;
-}
-.pedidos-col-head{
-  display:flex; align-items:center; justify-content:space-between;
-  gap:8px; margin-bottom:10px; padding: 4px 4px 8px;
-  border-bottom:1px solid var(--line-soft);
-  font-size:13px; font-weight:700;
-}
-.pedidos-col-count{
-  background: var(--bg-input); color: var(--text-dim);
-  font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px;
-  font-family: var(--font-mono);
-}
-.pedidos-col-count.has-new{ background: var(--accent); color:#fff; }
-.pedidos-col .pedido-item{ margin-bottom:8px; }
-.pi-acoes{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
-.pi-acoes button{
-  font-size:11.5px; font-weight:600; padding:7px 10px; border-radius:8px;
-  border:1px solid var(--line); background: var(--bg-input); color: var(--text);
-  cursor:pointer; font-family: inherit;
-}
-.pi-acoes button:hover{ border-color: var(--accent); color: var(--accent); }
-.pi-acoes button.btn-ok{ background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
-.pi-acoes button.btn-danger{ background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
-.impressora-bar{
-  display:flex; flex-wrap:wrap; align-items:center; gap:10px;
-  background: var(--bg-card); border:1px solid var(--line);
-  border-radius: var(--radius-m); padding: 12px 14px; margin-bottom:14px;
-  font-size:13px;
-}
-.impressora-status{ font-weight:600; }
-.impressora-status.ok{ color: var(--success); }
-.impressora-status.err{ color: var(--danger); }
-.badge-novos-pedidos{
-  display:inline-flex; align-items:center; justify-content:center;
-  min-width:18px; height:18px; padding:0 5px;
-  background: var(--accent); color:#fff; border-radius:999px;
-  font-size:11px; font-weight:700; margin-left:4px;
-  vertical-align: middle;
-}
-.badge-novos-pedidos.hidden{ display:none; }
-
-.pedidos-topo-status{
-  display:flex; flex-wrap:wrap; gap:10px; align-items:stretch;
-  margin-bottom:14px;
-}
-.pts-item{
-  background:var(--bg-card); border:1px solid var(--line);
-  border-radius:14px; padding:12px 16px; min-width:88px; text-align:center;
-}
-.pts-n{ display:block; font-size:28px; font-weight:800; font-family:var(--font-display); color:var(--accent); line-height:1; }
-.pts-l{ font-size:11px; color:var(--text-faint); letter-spacing:.04em; font-weight:700; }
-.pts-conn{ display:flex; flex-direction:column; gap:6px; margin-left:auto; justify-content:center; }
-.conn-pill{
-  font-size:12px; font-weight:600; padding:6px 10px; border-radius:999px;
-  background:var(--bg-input); border:1px solid var(--line); white-space:nowrap;
-}
-.conn-pill.ok{ color:var(--success); border-color:rgba(55,201,115,.35); }
-.conn-pill.err{ color:var(--danger); border-color:rgba(255,90,90,.35); }
-.pedidos-filtros{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; align-items:center; }
-.pedido-item.pedido-atrasado{ border-color:#ffb100; }
-.pedido-espera{ font-size:11.5px; color:var(--ember); font-weight:600; margin-top:4px; }
-.pedido-espera.atraso{ color:var(--danger); }
-.pi-tipo-badge{
-  display:inline-block; font-size:11px; font-weight:700; padding:3px 8px;
-  border-radius:999px; margin-bottom:6px; letter-spacing:.03em;
-}
-.pi-tipo-badge.entrega{ background:rgba(255,90,31,.15); color:var(--accent); }
-.pi-tipo-badge.retirada{ background:rgba(55,201,115,.15); color:var(--success); }
-.pi-print-meta{ font-size:11px; color:var(--text-faint); margin-top:6px; }
-.pi-print-meta.ok{ color:var(--success); }
-.pedido-item.pedido-novo{ animation: pedidoPulse 1.4s ease-in-out infinite; }
-
-.toast-novo-pedido{
-  position:fixed; top:18px; right:18px; z-index:500;
-  background:#1a120c; border:2px solid var(--accent);
-  color:var(--text); padding:14px 18px; border-radius:14px;
-  box-shadow: var(--shadow-pop); max-width:320px;
-  font-size:14px; font-weight:600;
-}
 .rel-bar-row{ display:flex; align-items:center; gap:10px; margin-bottom:8px; font-size:13px; }
 .rel-bar-row .rb-nome{ flex:0 0 120px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .rel-bar-row .rb-track{ flex:1; height:10px; background: var(--bg-input); border-radius:6px; overflow:hidden; }
@@ -1210,8 +950,6 @@ a{ color:inherit; }
 
 <!-- Configuração central da marca/tema/senha (ver data/site-config.js) -->
 <script src="data/site-config.js"></script>
-<!-- QZ Tray: impressão térmica local no PC da loja (só carrega se o app estiver instalado) -->
-<script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.5/qz-tray.js"></script>
 <script>
   (function () {
     try {
@@ -1236,7 +974,7 @@ a{ color:inherit; }
     <input type="password" id="senha-input" autocomplete="current-password" placeholder="Senha">
     <div class="erro" id="senha-erro"></div>
     <button class="btn btn-primary" id="btn-entrar" style="width:100%;">Entrar</button>
-    <p style="margin:12px 0 0;font-size:11.5px;color:var(--text-faint);">Login validado no servidor · sessão expira em 12 horas<br><span style="opacity:.65">Brutu's Delivery v1.0.1</span></p>
+    <p style="margin:12px 0 0;font-size:11.5px;color:var(--text-faint);">Padrão: admin / 5625 · Com API ativa o login valida no servidor</p>
   </div>
 </div>
 
@@ -1253,12 +991,15 @@ a{ color:inherit; }
   <div class="brand">
     <img id="topbar-logo" src="icons/icon-512.png" alt="Logo">
     <div class="titles">
-      <h1>Painel</h1>
+      <h1>Painel de <span>Controle</span></h1>
       <div class="sub" id="topbar-sub">Brutu's Delivery</div>
     </div>
   </div>
   <div class="actions">
-<button class="btn btn-secondary" id="btn-importar">
+    <a href="painel.html" class="btn btn-secondary" style="text-decoration:none; display:inline-flex; align-items:center;">
+      <span>🖨️</span><span class="btn-label">Imprimir Pedidos</span>
+    </a>
+    <button class="btn btn-secondary" id="btn-importar">
       <span>📥</span><span class="btn-label">Importar</span>
     </button>
     <button class="btn btn-secondary" id="btn-exportar">
@@ -1266,9 +1007,6 @@ a{ color:inherit; }
     </button>
     <button class="btn btn-primary" id="btn-salvar">
       <span>💾</span><span class="btn-label">Salvar</span>
-    </button>
-    <button class="btn btn-secondary" id="btn-sair-painel" type="button" title="Encerrar sessão">
-      <span>🚪</span><span class="btn-label">Sair</span>
     </button>
     <input type="file" id="input-importar-arquivo" accept="application/json" class="hidden">
   </div>
@@ -1282,7 +1020,7 @@ a{ color:inherit; }
     <button class="tab-btn" data-tab="produtos" role="tab">📦 <span>Produtos</span></button>
     <button class="tab-btn" data-tab="categorias" role="tab">📂 <span>Categorias</span></button>
     <button class="tab-btn" data-tab="combos" role="tab">🎁 <span>Combos</span></button>
-    <button class="tab-btn" data-tab="pedidos" role="tab">📋 <span>Pedidos</span><span class="badge-novos-pedidos hidden" id="badge-novos-pedidos">0</span></button>
+    <button class="tab-btn" data-tab="pedidos" role="tab">📋 <span>Pedidos</span></button>
     <button class="tab-btn" data-tab="taxa-entrega" role="tab">🚚 <span>Taxa de entrega</span></button>
     <button class="tab-btn" data-tab="cupons" role="tab">💲 <span>Cupons</span></button>
     <button class="tab-btn" data-tab="roleta" role="tab">🎰 <span>Roleta</span></button>
@@ -1329,7 +1067,7 @@ a{ color:inherit; }
       </div>
     </div>
     <div class="dashboard-aviso-pedidos">
-      Dados do servidor (SQLite). Pedidos do cardápio entram em tempo real nesta tela.
+      ⏳ Esses números aparecem automaticamente assim que os pedidos passarem a ser registrados pela API (em construção). Por enquanto os pedidos chegam por WhatsApp e são impressos em <a href="painel.html" style="color:var(--accent);">Imprimir Pedidos</a>.
     </div>
 
     <h2 class="section-title">Vendas na semana</h2>
@@ -1471,7 +1209,7 @@ a{ color:inherit; }
           </div>
           <div class="campo" id="campo-cfg-banner-promo-imagem">
             <label for="cfg-banner-promo-imagem">Imagem do banner <span class="opcional">(caminho ou link)</span></label>
-            <input type="text" id="cfg-banner-promo-imagem" placeholder="img/promo/nome-da-imagem.jpg">
+            <input type="text" id="cfg-banner-promo-imagem" placeholder="img/promo/sorteio-dia-dos-pais.jpg">
             <div class="msg-erro">Informe o caminho da imagem para ativar o banner promocional.</div>
           </div>
           <div class="campo" id="campo-cfg-banner-promo-alt" style="margin-bottom:0;">
@@ -1614,63 +1352,13 @@ a{ color:inherit; }
 
   <!-- ======================= Aba: Pedidos ======================= -->
   <section class="tab-panel" id="tab-pedidos">
-    <div class="pedidos-topo-status" id="pedidos-topo-status">
-      <div class="pts-item"><span class="pts-n" id="cnt-novos">0</span><span class="pts-l">NOVOS</span></div>
-      <div class="pts-item"><span class="pts-n" id="cnt-preparo">0</span><span class="pts-l">EM PREPARO</span></div>
-      <div class="pts-item"><span class="pts-n" id="cnt-prontos">0</span><span class="pts-l">PRONTOS</span></div>
-      <div class="pts-item"><span class="pts-n" id="cnt-saiu">0</span><span class="pts-l">SAIU</span></div>
-      <div class="pts-conn">
-        <span id="conn-servidor" class="conn-pill err">🔴 Servidor</span>
-        <span id="impressora-status" class="conn-pill err">🔴 Impressora</span>
-      </div>
-    </div>
-
-    <div class="impressora-bar" id="impressora-bar">
-      <button class="btn btn-secondary" type="button" id="btn-testar-impressora" style="padding:8px 12px;font-size:13px;">Testar Impressora</button>
-      <button class="btn btn-secondary" type="button" id="btn-reconectar-qz" style="padding:8px 12px;font-size:13px;">Reconectar QZ</button>
-      <button class="btn btn-secondary" type="button" id="btn-testar-som" style="padding:8px 12px;font-size:13px;">🔊 Testar som</button>
-      <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-dim);cursor:pointer;">
-        <input type="checkbox" id="cfg-auto-print" checked>
-        Imprimir novos automaticamente
-      </label>
-      <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-dim);cursor:pointer;">
-        <input type="checkbox" id="cfg-som-alerta" checked>
-        Som de alerta
-      </label>
-      <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-dim);cursor:pointer;" title="Silencia por 15 minutos">
-        <input type="checkbox" id="cfg-som-mudo">
-        Silenciar 15 min
-      </label>
-    </div>
-    <p id="qz-ajuda" style="font-size:12px;color:var(--text-faint);margin:-6px 0 12px;line-height:1.45;">
-      QZ Tray no PC da loja: <a href="https://qz.io/download/" target="_blank" rel="noopener" style="color:var(--accent);">qz.io/download</a>.
-      Impressão usa os dados do pedido no servidor (não precisa colar do WhatsApp).
+    <h2 class="section-title">📋 Pedidos registrados</h2>
+    <p style="font-size:13px;color:var(--text-dim);margin:0 0 16px;line-height:1.5;">
+      Pedidos salvos neste navegador ao finalizar no cardápio (mesmo aparelho) ou registrados manualmente. Para impressão térmica use <a href="painel.html" style="color:var(--accent);">Imprimir Pedidos</a>.
     </p>
-
-    <div class="pedidos-filtros">
-      <input type="search" id="pedidos-busca" placeholder="Buscar nº, cliente ou telefone…" class="filtro-categoria" style="flex:1;min-width:180px;padding:10px 12px;">
-      <select id="pedidos-filtro-periodo" class="filtro-categoria" style="max-width:140px;">
-        <option value="hoje" selected>Hoje</option>
-        <option value="7">7 dias</option>
-        <option value="todos">Todos</option>
-      </select>
-      <select id="pedidos-filtro-tipo" class="filtro-categoria" style="max-width:140px;">
-        <option value="todos">Entrega + Retirada</option>
-        <option value="entrega">Só entrega</option>
-        <option value="retirada">Só retirada</option>
-      </select>
-      <select id="pedidos-filtro-status" class="filtro-categoria" style="max-width:160px;">
-        <option value="ativos" selected>Em andamento</option>
-        <option value="todos">Todos status</option>
-        <option value="cancelado">Cancelados</option>
-        <option value="entregue">Finalizados</option>
-      </select>
-      <button class="btn btn-secondary" id="btn-pedidos-atualizar" type="button">🔄</button>
-      <button class="btn btn-primary" id="btn-pedidos-registrar" type="button">➕ Pedido manual</button>
-      <button class="btn btn-secondary" id="btn-imprimir-whatsapp" type="button">📋 Imprimir WhatsApp</button>
-    </div>
-    <div style="display:flex;justify-content:flex-end;margin:6px 0 10px;">
-      <span style="font-size:12px;color:var(--text-faint);" id="pedidos-sync-info"></span>
+    <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-primary" id="btn-pedidos-registrar" type="button">➕ Registrar pedido</button>
+      <button class="btn btn-secondary" id="btn-pedidos-limpar" type="button">Limpar histórico local</button>
     </div>
     <div id="pedidos-lista" class="empty-card">Nenhum pedido registrado ainda.</div>
   </section>
@@ -2039,85 +1727,43 @@ a{ color:inherit; }
   </div>
 </div>
 
-<!-- ======================= Modal: Registrar pedido completo ======================= -->
+<!-- ======================= Modal: Registrar pedido ======================= -->
 <div class="modal-overlay" id="modal-pedido-manual" aria-hidden="true">
   <div class="modal-caixa" role="dialog" aria-modal="true">
     <div class="modal-cabecalho">
-      <h3>Pedido manual completo</h3>
+      <h3>Registrar pedido</h3>
       <button class="modal-fechar" id="modal-pedido-manual-fechar" aria-label="Fechar">×</button>
     </div>
     <div class="modal-corpo">
       <form id="form-pedido-manual" novalidate>
-        <div class="campo-linha">
-          <div class="campo">
-            <label for="f-pm-cliente">Cliente</label>
-            <input type="text" id="f-pm-cliente" placeholder="Nome do cliente">
-          </div>
-          <div class="campo">
-            <label for="f-pm-telefone">Telefone</label>
-            <input type="tel" id="f-pm-telefone" placeholder="(16) 99999-9999">
-          </div>
-        </div>
-        <div class="campo-linha">
-          <div class="campo">
-            <label for="f-pm-tipo">Tipo do pedido</label>
-            <select id="f-pm-tipo">
-              <option value="entrega">🛵 Entrega</option>
-              <option value="retirada">🏪 Retirada no local</option>
-            </select>
-          </div>
-          <div class="campo">
-            <label for="f-pm-pagamento">Pagamento</label>
-            <select id="f-pm-pagamento">
-              <option value="">Selecione</option>
-              <option value="PIX">PIX</option>
-              <option value="Dinheiro">Dinheiro</option>
-              <option value="Cartão">Cartão</option>
-              <option value="Outro">Outro</option>
-            </select>
-          </div>
-        </div>
-        <div id="pm-endereco-campos">
-          <div class="campo">
-            <label for="f-pm-endereco">Endereço</label>
-            <input type="text" id="f-pm-endereco" placeholder="Rua, número">
-          </div>
-          <div class="campo-linha">
-            <div class="campo">
-              <label for="f-pm-bairro">Bairro</label>
-              <input type="text" id="f-pm-bairro" placeholder="Bairro">
-            </div>
-            <div class="campo">
-              <label for="f-pm-complemento">Complemento/referência</label>
-              <input type="text" id="f-pm-complemento" placeholder="Casa, portão, referência…">
-            </div>
-          </div>
-        </div>
-        <div class="campo">
-          <label for="f-pm-lista-itens">Itens do pedido</label>
-          <textarea id="f-pm-lista-itens" rows="6" placeholder="Um item por linha. Ex.:&#10;2x Brutus Clássico - 25,00&#10;1x Coca-Cola 2L - 12,00&#10;Sem cebola"></textarea>
-          <div class="desc">Use “2x Produto - 25,00”. O preço por item é opcional.</div>
-        </div>
         <div class="campo-linha">
           <div class="campo" id="campo-pm-total">
             <label for="f-pm-total">Total (R$)</label>
             <input type="number" id="f-pm-total" step="0.01" min="0" placeholder="0,00">
             <div class="msg-erro">Informe o total.</div>
           </div>
-          <div class="campo" id="campo-pm-troco">
-            <label for="f-pm-troco">Troco para</label>
-            <input type="text" id="f-pm-troco" placeholder="Ex.: R$ 100,00">
+          <div class="campo">
+            <label for="f-pm-itens">Qtd. itens</label>
+            <input type="number" id="f-pm-itens" step="1" min="1" value="1">
           </div>
         </div>
         <div class="campo">
-          <label for="f-pm-obs">Observações gerais</label>
-          <textarea id="f-pm-obs" rows="3" placeholder="Ponto da carne, retirar ingrediente, origem do pedido…"></textarea>
+          <label for="f-pm-cliente">Cliente <span class="opcional">(opcional)</span></label>
+          <input type="text" id="f-pm-cliente" placeholder="Nome">
+        </div>
+        <div class="campo">
+          <label for="f-pm-produto">Produto principal <span class="opcional">(para ranking)</span></label>
+          <input type="text" id="f-pm-produto" placeholder="Ex.: X Tudo Brutu's">
+        </div>
+        <div class="campo">
+          <label for="f-pm-obs">Observação</label>
+          <input type="text" id="f-pm-obs" placeholder="WhatsApp / balcão / iFood…">
         </div>
       </form>
     </div>
     <div class="modal-rodape">
       <button class="btn btn-secondary" id="btn-pm-cancelar" type="button">Cancelar</button>
-      <button class="btn btn-primary" id="btn-pm-salvar" type="button">🖨️ Registrar e imprimir sem QZ</button>
+      <button class="btn btn-primary" id="btn-pm-salvar" type="button">💾 Registrar</button>
     </div>
   </div>
 </div>
@@ -2519,7 +2165,7 @@ a{ color:inherit; }
     card.dataset.id = produto.id;
 
     const imagemHtml = produto.foto
-      ? `<img src="${produto.foto}" alt="${produto.nome}" loading="lazy" data-fallback-produto="1">`
+      ? `<img src="${produto.foto}" alt="${produto.nome}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'sem-imagem\\'>🍽️</div>'">`
       : `<div class="sem-imagem">🍽️</div>`;
 
     card.innerHTML = `
@@ -2573,15 +2219,6 @@ a{ color:inherit; }
     card.querySelector(".btn-editar").addEventListener("click", () => abrirModalProduto(produto.id));
     card.querySelector(".btn-duplicar").addEventListener("click", () => duplicarProduto(produto.id));
     card.querySelector(".btn-excluir").addEventListener("click", () => pedirConfirmacaoExclusao(produto.id));
-    const imgProduto = card.querySelector("img[data-fallback-produto]");
-    if (imgProduto) {
-      imgProduto.addEventListener("error", () => {
-        const fallback = document.createElement("div");
-        fallback.className = "sem-imagem";
-        fallback.textContent = "🍽️";
-        imgProduto.replaceWith(fallback);
-      }, { once: true });
-    }
 
     return card;
   }
@@ -2761,14 +2398,7 @@ a{ color:inherit; }
       caixa.innerHTML = "<span>🖼️</span>";
       return;
     }
-    caixa.innerHTML = "";
-    const img = document.createElement("img");
-    img.src = url;
-    img.alt = "Prévia do produto";
-    img.addEventListener("error", () => {
-      caixa.innerHTML = "<span>⚠️</span>";
-    }, { once: true });
-    caixa.appendChild(img);
+    caixa.innerHTML = `<img src="${url}" onerror="this.parentElement.innerHTML='<span>⚠️</span>'">`;
   }
 
   function limparErrosFormulario() {
@@ -3323,29 +2953,6 @@ a{ color:inherit; }
     $("#cfg-pix-tipo").value = r.pix?.tipo || "telefone";
     $("#cfg-pix-titular").value = r.pix?.titular || "";
     $("#cfg-pix-cidade").value = r.pix?.cidade || "";
-    // PIX protegido por variável de ambiente no Render: não permite editar no painel
-    const pixTravado = !!(r.pix && r.pix.protegido && r.pix.chave);
-    ["cfg-pix-chave", "cfg-pix-tipo", "cfg-pix-titular", "cfg-pix-cidade"].forEach((id) => {
-      const el = $("#" + id);
-      if (!el) return;
-      el.disabled = pixTravado;
-      el.readOnly = pixTravado && el.tagName === "INPUT";
-    });
-    let avisoPix = $("#cfg-pix-aviso-protegido");
-    if (!avisoPix) {
-      const chaveInput = $("#cfg-pix-chave");
-      if (chaveInput && chaveInput.parentElement) {
-        avisoPix = document.createElement("p");
-        avisoPix.id = "cfg-pix-aviso-protegido";
-        avisoPix.style.cssText = "font-size:12.5px;color:var(--text-faint);margin:8px 0 0;line-height:1.45;";
-        chaveInput.parentElement.appendChild(avisoPix);
-      }
-    }
-    if (avisoPix) {
-      avisoPix.textContent = pixTravado
-        ? "🔒 Chave PIX protegida por variável de ambiente no servidor. Não pode ser alterada pelo painel nem pelo Git."
-        : "";
-    }
   }
 
   function atualizarVisibilidadeBannerPromo() {
@@ -3549,64 +3156,6 @@ a{ color:inherit; }
   /* =====================================================================
      BACKUP + HISTÓRICO
      ===================================================================== */
-  // Histórico de alterações do painel (localStorage neste navegador).
-  // Já era referenciado em vários pontos do código, mas a implementação
-  // estava ausente — restauração alinhada ao padrão de PEDIDOS_KEY.
-  const HISTORICO_KEY = "brutus-painel:historico:v1";
-
-  function lerHistorico() {
-    try {
-      const lista = JSON.parse(localStorage.getItem(HISTORICO_KEY) || "[]");
-      return Array.isArray(lista) ? lista : [];
-    } catch (e) {
-      return [];
-    }
-  }
-
-  function salvarHistorico(lista) {
-    try {
-      localStorage.setItem(HISTORICO_KEY, JSON.stringify((lista || []).slice(0, 200)));
-    } catch (e) {}
-  }
-
-  function registrarHistorico(acao, detalhe) {
-    const lista = lerHistorico();
-    lista.unshift({
-      ts: Date.now(),
-      acao: String(acao || ""),
-      detalhe: String(detalhe || ""),
-    });
-    salvarHistorico(lista);
-    // Atualiza a lista na tela se a aba de backup/histórico estiver aberta
-    try {
-      if (typeof state !== "undefined" && state.abaAtiva === "backup") {
-        renderizarHistorico();
-      }
-    } catch (e) {}
-  }
-
-  function renderizarHistorico() {
-    const container = $("#historico-lista");
-    if (!container) return;
-    const lista = lerHistorico();
-    if (!lista.length) {
-      container.innerHTML = `<div class="historico-vazio">Nenhuma alteração registrada ainda neste navegador.</div>`;
-      return;
-    }
-    container.innerHTML = lista.map((h) => {
-      const hora = new Date(h.ts || Date.now()).toLocaleString("pt-BR", {
-        day: "2-digit", month: "2-digit", year: "2-digit",
-        hour: "2-digit", minute: "2-digit",
-      });
-      return `
-        <div class="historico-item">
-          <div class="h-hora">${hora}</div>
-          <div class="h-acao">${(h.acao || "").replace(/</g, "&lt;")}</div>
-          ${h.detalhe ? `<div class="h-detalhe">${String(h.detalhe).replace(/</g, "&lt;")}</div>` : ""}
-        </div>`;
-    }).join("");
-  }
-
   function iniciarAbaBackup() {
     const btnExp = $("#btn-backup-exportar");
     if (!btnExp) return;
@@ -3675,12 +3224,6 @@ a{ color:inherit; }
     return lista.filter((p) => (p.ts || 0) >= agora - ms);
   }
 
-  function escaparHtml(valor) {
-    return String(valor == null ? "" : valor).replace(/[&<>'"]/g, (c) => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
-    })[c]);
-  }
-
   function formatarHoraPedido(ts) {
     const d = new Date(ts);
     return d.toLocaleString("pt-BR", {
@@ -3690,114 +3233,38 @@ a{ color:inherit; }
   }
 
   const STATUS_LABEL = {
-    recebido: "Novo",
-    preparando: "Em preparo",
-    pronto: "Pronto",
+    recebido: "Recebido",
+    preparando: "Preparando",
     saiu_entrega: "Saiu p/ entrega",
-    entregue: "Finalizado",
+    entregue: "Entregue",
     cancelado: "Cancelado",
   };
 
-  const COLUNAS_STATUS = [
-    { key: "recebido", titulo: "🔔 NOVOS", filtro: (s) => !s || s === "recebido" },
-    { key: "preparando", titulo: "🍳 EM PREPARO", filtro: (s) => s === "preparando" },
-    { key: "pronto", titulo: "📦 PRONTOS", filtro: (s) => s === "pronto" },
-    { key: "saiu_entrega", titulo: "🛵 SAIU", filtro: (s) => s === "saiu_entrega" },
-    { key: "entregue", titulo: "✅ FINALIZADOS", filtro: (s) => s === "entregue" },
-    { key: "cancelado", titulo: "❌ CANCELADOS", filtro: (s) => s === "cancelado" },
-  ];
-
   let pedidosCache = [];
-  let ultimoIdsPedidos = new Set();
+  let ultimoCountPedidos = 0;
   let pollTimer = null;
-  let sseSource = null;
-  let qzConectado = false;
-  let impressoraNome = null;
-  let servidorOnline = false;
-  const AUTO_PRINT_KEY = "brutus-painel:auto-print";
-  const SOM_KEY = "brutus-painel:som-alerta";
-  const MUDO_ATE_KEY = "brutus-painel:som-mudo-ate";
-  let pedidosFiltro = { busca: "", periodo: "hoje", tipo: "todos", status: "ativos" };
 
   function tocarAlertaNovoPedido() {
     try {
-      if (!somAlertaAtivo()) return;
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const o = ctx.createOscillator();
       const g = ctx.createGain();
-      o.type = "square";
       o.connect(g); g.connect(ctx.destination);
       o.frequency.value = 880;
-      g.gain.value = 0.12;
+      g.gain.value = 0.08;
       o.start();
-      setTimeout(() => { o.frequency.value = 1175; }, 140);
-      setTimeout(() => { o.frequency.value = 1400; }, 280);
-      setTimeout(() => { o.stop(); ctx.close(); }, 520);
+      setTimeout(() => { o.frequency.value = 1175; }, 120);
+      setTimeout(() => { o.stop(); ctx.close(); }, 320);
     } catch (e) {}
   }
 
-  function somAlertaAtivo() {
-    try {
-      const mudoAte = Number(localStorage.getItem(MUDO_ATE_KEY) || 0);
-      if (mudoAte && Date.now() < mudoAte) return false;
-      const v = localStorage.getItem(SOM_KEY);
-      if (v === null) return true;
-      return v === "1";
-    } catch (e) { return true; }
-  }
-
-  function mostrarBannerNovoPedido(pedido) {
-    const antigo = document.querySelector(".toast-novo-pedido");
-    if (antigo) antigo.remove();
-    const el = document.createElement("div");
-    el.className = "toast-novo-pedido";
-    el.innerHTML = `🔔 Novo pedido <strong>#${escaparHtml(pedido.numero || "—")}</strong><br><span style="font-weight:400;font-size:13px;color:var(--text-dim)">${escaparHtml(pedido.cliente || "")} · ${formatarPreco(pedido.total || 0)}</span>`;
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 12000);
-  }
-
-  function tempoEsperaTexto(ts) {
-    const min = Math.max(0, Math.floor((Date.now() - (ts || Date.now())) / 60000));
-    if (min < 1) return "agora";
-    if (min === 1) return "há 1 min";
-    return `há ${min} min`;
-  }
-
-  function atualizarBadgeNovos() {
-    const badge = $("#badge-novos-pedidos");
-    const n = (pedidosCache || []).filter((p) => !p.status || p.status === "recebido").length;
-    if (badge) {
-      if (n > 0) { badge.textContent = String(n); badge.classList.remove("hidden"); }
-      else badge.classList.add("hidden");
-    }
-    const set = (id, v) => { const el = $(id); if (el) el.textContent = String(v); };
-    const lista = pedidosCache || [];
-    set("#cnt-novos", lista.filter((p) => (p.status || "recebido") === "recebido").length);
-    set("#cnt-preparo", lista.filter((p) => p.status === "preparando").length);
-    set("#cnt-prontos", lista.filter((p) => p.status === "pronto").length);
-    set("#cnt-saiu", lista.filter((p) => p.status === "saiu_entrega").length);
-  }
-
-  function atualizarConnServidor(ok) {
-    servidorOnline = !!ok;
-    const el = $("#conn-servidor");
-    if (!el) return;
-    el.className = "conn-pill " + (ok ? "ok" : "err");
-    el.textContent = ok ? "🟢 Servidor conectado" : "🔴 Servidor offline";
-  }
-
   async function carregarPedidosRemotos() {
-    if (!window.BRUTUS_API || !window.BRUTUS_API.token()) {
-      atualizarConnServidor(false);
-      return null;
-    }
+    if (!window.BRUTUS_API || !window.BRUTUS_API.token()) return null;
     try {
       const up = await window.BRUTUS_API.health();
-      atualizarConnServidor(up);
       if (!up) return null;
       return await window.BRUTUS_API.request("/api/pedidos");
     } catch (e) {
-      atualizarConnServidor(false);
       return null;
     }
   }
@@ -3805,538 +3272,86 @@ a{ color:inherit; }
   async function sincronizarPedidos(opts = {}) {
     const remotos = await carregarPedidosRemotos();
     if (remotos) {
-      const idsAgora = new Set(remotos.map((p) => p.id || p.numero));
-      if (opts.alertar && ultimoIdsPedidos.size > 0) {
-        const novos = remotos.filter((p) => {
-          const id = p.id || p.numero;
-          return id && !ultimoIdsPedidos.has(id);
-        });
-        if (novos.length) {
-          tocarAlertaNovoPedido();
-          mostrarToast(novos.length === 1 ? "Novo pedido recebido!" : `${novos.length} novos pedidos!`, "success");
-          novos.forEach((p) => {
-            mostrarBannerNovoPedido(p);
-            talvezImprimirAutomatico(p);
-          });
-        }
+      if (opts.alertar && remotos.length > ultimoCountPedidos && ultimoCountPedidos > 0) {
+        tocarAlertaNovoPedido();
+        mostrarToast("Novo pedido recebido!", "success");
       }
-      ultimoIdsPedidos = idsAgora;
+      ultimoCountPedidos = remotos.length;
       pedidosCache = remotos;
+      // espelha no localStorage para relatórios offline
       salvarPedidos(remotos);
-      const info = $("#pedidos-sync-info");
-      if (info) {
-        info.textContent = "API · " + new Date().toLocaleTimeString("pt-BR");
-        info.style.color = "";
-      }
     } else {
       pedidosCache = lerPedidos();
-      const info = $("#pedidos-sync-info");
-      if (info) {
-        info.textContent = "⚠ Local (sem API) — só vê pedidos deste aparelho";
-        info.style.color = "var(--danger, #e74c3c)";
-      }
     }
-    atualizarBadgeNovos();
     return pedidosCache;
-  }
-
-  async function mudarStatusPedido(id, status) {
-    if (!id) return;
-    const label = STATUS_LABEL[status] || status;
-    if (window.BRUTUS_API && window.BRUTUS_API.token()) {
-      try {
-        await window.BRUTUS_API.request(`/api/pedidos/${encodeURIComponent(id)}/status`, {
-          method: "PATCH",
-          body: JSON.stringify({ status }),
-        });
-        registrarHistorico("Status do pedido", `#${id} → ${label}`);
-        mostrarToast(`Status → ${label}`, "success");
-        await sincronizarPedidos();
-        renderizarPedidosLista();
-        renderizarDashboardPedidos();
-        renderizarRelatorios();
-      } catch (e) {
-        mostrarToast(e.message || "Falha ao atualizar status.", "error");
-      }
-    } else {
-      const lista2 = lerPedidos();
-      const p = lista2.find((x) => x.id === id || x.numero === id);
-      if (p) {
-        p.status = status;
-        salvarPedidos(lista2);
-        pedidosCache = lista2;
-        registrarHistorico("Status do pedido", `#${p.numero || id} → ${label}`);
-      }
-      mostrarToast("Status atualizado localmente (sem API).", "info");
-      renderizarPedidosLista();
-      atualizarBadgeNovos();
-    }
-  }
-
-  async function marcarImpressaoServidor(pedido) {
-    const id = pedido.id || pedido.numero;
-    if (!id || !window.BRUTUS_API || !window.BRUTUS_API.token()) return pedido;
-    try {
-      return await window.BRUTUS_API.request(`/api/pedidos/${encodeURIComponent(id)}/impressao`, {
-        method: "PATCH",
-        body: JSON.stringify({}),
-      });
-    } catch (e) {
-      return pedido;
-    }
-  }
-
-  async function reservarImpressaoServidor(pedido) {
-    const id = pedido.id || pedido.numero;
-    if (!id || !window.BRUTUS_API || !window.BRUTUS_API.token()) return false;
-    try {
-      await window.BRUTUS_API.request(`/api/pedidos/${encodeURIComponent(id)}/impressao/reservar`, {
-        method: "POST", body: JSON.stringify({})
-      });
-      return true;
-    } catch (e) { return false; }
-  }
-
-  function filtrarListaPedidos(lista) {
-    let out = lista.slice();
-    const f = pedidosFiltro;
-    if (f.periodo === "hoje") {
-      const ini = new Date(); ini.setHours(0,0,0,0);
-      out = out.filter((p) => (p.ts || 0) >= ini.getTime());
-    } else if (f.periodo === "7") {
-      out = out.filter((p) => (p.ts || 0) >= Date.now() - 7 * 86400000);
-    }
-    if (f.tipo === "entrega") out = out.filter((p) => (p.tipoEntrega || "entrega") === "entrega");
-    if (f.tipo === "retirada") out = out.filter((p) => p.tipoEntrega === "retirada");
-    if (f.status === "ativos") {
-      out = out.filter((p) => !["entregue", "cancelado"].includes(p.status || "recebido"));
-    } else if (f.status === "cancelado") {
-      out = out.filter((p) => p.status === "cancelado");
-    } else if (f.status === "entregue") {
-      out = out.filter((p) => p.status === "entregue");
-    }
-    const q = (f.busca || "").trim().toLowerCase();
-    if (q) {
-      out = out.filter((p) => {
-        const blob = [p.numero, p.cliente, p.telefone, p.endereco, p.bairro].join(" ").toLowerCase();
-        return blob.includes(q);
-      });
-    }
-    return out;
-  }
-
-  function htmlCardPedido(p) {
-    const st = p.status || "recebido";
-    const isNovo = st === "recebido";
-    const min = Math.floor((Date.now() - (p.ts || Date.now())) / 60000);
-    const atrasado = isNovo && min >= 10;
-    const id = escaparHtml(p.id || p.numero || "");
-    const itensTxt = (p.itens || []).slice(0, 8).map((i) => {
-      let line = `${Number(i.quantidade) || 1}x ${escaparHtml(i.nome || "Item")}`;
-      if (i.observacao) line += `<br><span style="opacity:.85"> - ${escaparHtml(i.observacao)}</span>`;
-      return line;
-    }).join("<br>") || (p.produtoPrincipal || "");
-    const tipo = (p.tipoEntrega || "entrega") === "retirada" ? "retirada" : "entrega";
-    const tipoBadge = tipo === "retirada"
-      ? `<span class="pi-tipo-badge retirada">🏪 RETIRADA</span>`
-      : `<span class="pi-tipo-badge entrega">🛵 ENTREGA</span>`;
-
-    const botoes = [];
-    botoes.push(`<button type="button" class="btn-imprimir-pedido" data-id="${id}">🖨️ QZ</button>`);
-    botoes.push(`<button type="button" class="btn-imprimir-navegador" data-id="${id}">🧾 Sem QZ</button>`);
-    if (st === "recebido") {
-      botoes.push(`<button type="button" class="btn-ok btn-status" data-id="${id}" data-status="preparando">✓ Aceitar</button>`);
-      botoes.push(`<button type="button" class="btn-danger btn-status" data-id="${id}" data-status="cancelado">Cancelar</button>`);
-    } else if (st === "preparando") {
-      botoes.push(`<button type="button" class="btn-ok btn-status" data-id="${id}" data-status="pronto">📦 Pronto</button>`);
-      botoes.push(`<button type="button" class="btn-danger btn-status" data-id="${id}" data-status="cancelado">Cancelar</button>`);
-    } else if (st === "pronto") {
-      botoes.push(`<button type="button" class="btn-ok btn-status" data-id="${id}" data-status="saiu_entrega">🛵 Saiu</button>`);
-      botoes.push(`<button type="button" class="btn-ok btn-status" data-id="${id}" data-status="entregue">✓ Finalizar</button>`);
-    } else if (st === "saiu_entrega") {
-      botoes.push(`<button type="button" class="btn-ok btn-status" data-id="${id}" data-status="entregue">✓ Finalizar</button>`);
-    } else if (st === "entregue" || st === "cancelado") {
-      botoes.push(`<button type="button" class="btn-status" data-id="${id}" data-status="recebido">Reabrir</button>`);
-    }
-    botoes.push(`<button type="button" class="btn-detalhe-pedido" data-id="${id}">Detalhes</button>`);
-
-    let printMeta = "🖨 Não impresso";
-    let printClass = "";
-    if (p.impressoEm) {
-      printClass = "ok";
-      const h = new Date(p.impressoEm).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-      printMeta = `✓ Impresso ${h}`;
-      if (p.reimpressoEm) {
-        const hr = new Date(p.reimpressoEm).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-        printMeta += ` · Reimpresso ${hr}`;
-      }
-    }
-
-    return `
-      <div class="pedido-item ${isNovo ? "pedido-novo" : ""} ${atrasado ? "pedido-atrasado" : ""}" data-id="${id}">
-        <div class="pi-topo">
-          <div>
-            ${tipoBadge}
-            <div class="pi-id">#${escaparHtml(p.numero || "—")} ${p.manual ? "· manual" : ""}</div>
-            <div class="pi-hora">${formatarHoraPedido(p.ts)}</div>
-            <div class="pedido-espera ${atrasado ? "atraso" : ""}">${tempoEsperaTexto(p.ts)}</div>
-          </div>
-          <div class="pi-total">${formatarPreco(p.total || 0)}</div>
-        </div>
-        <div class="pi-meta">
-          ${p.cliente ? `<strong>👤 ${escaparHtml(p.cliente)}</strong><br>` : ""}
-          ${p.telefone ? `📞 ${escaparHtml(p.telefone)}<br>` : ""}
-          ${tipo === "entrega" ? `📍 ${escaparHtml(p.endereco || "")}${p.bairro ? " — " + escaparHtml(p.bairro) : ""}${p.complemento || p.referencia ? "<br>Comp: " + escaparHtml(p.complemento || p.referencia) : ""}<br>` : ""}
-          ${p.formaPagamento ? `💳 ${escaparHtml(p.formaPagamento)}${p.troco ? " (troco p/ " + escaparHtml(p.troco) + ")" : ""}<br>` : ""}
-          <div style="margin-top:6px;">${itensTxt}</div>
-          ${p.observacao || p.obs ? `<br>📝 ${escaparHtml(p.obs || p.observacao)}` : ""}
-        </div>
-        <div class="pi-print-meta ${printClass}">${printMeta}</div>
-        <div class="pi-acoes">${botoes.join("")}</div>
-      </div>`;
   }
 
   function renderizarPedidosLista() {
     const container = $("#pedidos-lista");
     if (!container) return;
-    const base = pedidosCache.length ? pedidosCache : lerPedidos();
-    const lista = filtrarListaPedidos(base);
-    atualizarBadgeNovos();
+    const lista = pedidosCache.length ? pedidosCache : lerPedidos();
     if (!lista.length) {
       container.className = "empty-card";
-      container.innerHTML = "Nenhum pedido com esses filtros.";
+      container.innerHTML = "Nenhum pedido registrado ainda.";
       return;
     }
-    // Se busca/filtro ativo, lista plana; senão kanban
-    const filtroAtivo = (pedidosFiltro.busca || "").trim() || pedidosFiltro.status !== "ativos" || pedidosFiltro.tipo !== "todos";
-    if (filtroAtivo) {
-      container.className = "";
-      container.innerHTML = lista.slice(0, 80).map(htmlCardPedido).join("");
-    } else {
-      container.className = "pedidos-kanban";
-      container.innerHTML = COLUNAS_STATUS.map((col) => {
-        const itens = lista.filter((p) => col.filtro(p.status || "recebido")).slice(0, 40);
-        const countClass = col.key === "recebido" && itens.length ? "has-new" : "";
-        return `
-          <div class="pedidos-col" data-col="${col.key}">
-            <div class="pedidos-col-head">
-              <span>${col.titulo}</span>
-              <span class="pedidos-col-count ${countClass}">${itens.length}</span>
-            </div>
-            ${itens.length ? itens.map(htmlCardPedido).join("") : `<div style="font-size:12px;color:var(--text-faint);padding:8px 4px;">Nenhum</div>`}
-          </div>`;
-      }).join("");
-    }
+    container.className = "";
+    container.innerHTML = lista.slice(0, 50).map((p) => {
+      const st = p.status || "recebido";
+      const opts = Object.keys(STATUS_LABEL).map((k) =>
+        `<option value="${k}" ${k === st ? "selected" : ""}>${STATUS_LABEL[k]}</option>`
+      ).join("");
+      return `
+      <div class="pedido-item" data-id="${p.id || ""}">
+        <div class="pi-topo">
+          <div>
+            <div class="pi-id">#${p.numero || "—"} ${p.manual ? "· manual" : ""}</div>
+            <div class="pi-hora">${formatarHoraPedido(p.ts)}</div>
+          </div>
+          <div class="pi-total">${formatarPreco(p.total || 0)}</div>
+        </div>
+        <div class="pi-meta">
+          ${p.cliente ? `Cliente: ${p.cliente}<br>` : ""}
+          ${p.tipoEntrega ? `Tipo: ${p.tipoEntrega}<br>` : ""}
+          ${(p.itens || []).slice(0, 6).map((i) => `${i.quantidade || 1}x ${i.nome}`).join(" · ") || (p.produtoPrincipal || "")}
+          ${p.cupom ? `<br>Cupom: ${p.cupom}` : ""}
+          ${p.obs || p.observacao ? `<br>${p.obs || p.observacao}` : ""}
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <label style="font-size:12px;color:var(--text-dim);">Status</label>
+          <select class="filtro-categoria sel-status-pedido" data-id="${p.id || p.numero}" style="flex:1;min-width:140px;padding:8px 10px;">
+            ${opts}
+          </select>
+        </div>
+      </div>`;
+    }).join("");
 
-    container.querySelectorAll(".btn-status").forEach((btn) => {
-      btn.addEventListener("click", () => mudarStatusPedido(btn.dataset.id, btn.dataset.status));
-    });
-    container.querySelectorAll(".btn-imprimir-pedido").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const p = base.find((x) => (x.id || x.numero) === btn.dataset.id);
-        if (p) imprimirPedido(p, { manual: true });
-      });
-    });
-    container.querySelectorAll(".btn-imprimir-navegador").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const p = base.find((x) => (x.id || x.numero) === btn.dataset.id);
-        if (p) abrirImpressaoNavegador(p);
-      });
-    });
-    container.querySelectorAll(".btn-detalhe-pedido").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const p = base.find((x) => (x.id || x.numero) === btn.dataset.id);
-        if (p) abrirDetalhePedido(p);
-      });
-    });
-  }
-
-  function abrirDetalhePedido(p) {
-    const itens = (p.itens || []).map((i) => `• ${i.quantidade || 1}x ${i.nome}${i.observacao ? " (" + i.observacao + ")" : ""}`).join("\n");
-    const txt = [
-      `Pedido #${p.numero || "—"}`,
-      `Status: ${STATUS_LABEL[p.status] || p.status}`,
-      `Horário: ${formatarHoraPedido(p.ts)} (${tempoEsperaTexto(p.ts)})`,
-      `Cliente: ${p.cliente || "—"}`,
-      `Telefone: ${p.telefone || "—"}`,
-      `Tipo: ${p.tipoEntrega || "—"}`,
-      p.endereco ? `Endereço: ${p.endereco}` : "",
-      p.bairro ? `Bairro: ${p.bairro}` : "",
-      (p.complemento || p.referencia) ? `Complemento: ${p.complemento || p.referencia}` : "",
-      `Pagamento: ${p.formaPagamento || "—"}${p.troco ? " / troco " + p.troco : ""}`,
-      `Total: ${formatarPreco(p.total || 0)}`,
-      "",
-      "Itens:",
-      itens || "—",
-      p.observacao || p.obs ? "\nObs: " + (p.observacao || p.obs) : "",
-    ].filter(Boolean).join("\n");
-    alert(txt);
-  }
-
-  function setImpressoraStatus(ok, texto) {
-    const el = $("#impressora-status");
-    if (!el) return;
-    el.className = "conn-pill " + (ok ? "ok" : "err");
-    el.textContent = texto || (ok ? "🟢 Impressora pronta" : "🔴 Impressora");
-  }
-
-  function montarTextoCupomTermico(p) {
-    const sep = "--------------------------------";
-    const d = new Date(p.ts || Date.now());
-    const hora = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-    const linhas = [];
-    linhas.push("      BRUTU'S DELIVERY");
-    linhas.push(sep);
-    linhas.push("PEDIDO #" + (p.numero || "—") + "          " + hora);
-    linhas.push(sep);
-    linhas.push("CLIENTE");
-    if (p.cliente) linhas.push(String(p.cliente).toUpperCase());
-    if (p.telefone) linhas.push(p.telefone);
-    linhas.push("");
-    (p.itens || []).forEach((i) => {
-      linhas.push((i.quantidade || 1) + "x " + String(i.nome || "Item").toUpperCase());
-      if (i.observacao) linhas.push("   - " + i.observacao);
-    });
-    linhas.push("");
-    linhas.push(sep);
-    if ((p.tipoEntrega || "entrega") === "retirada") {
-      linhas.push("RETIRADA NO LOCAL");
-    } else {
-      linhas.push("ENTREGA");
-      if (p.endereco) linhas.push(p.endereco);
-      if (p.bairro) linhas.push(p.bairro);
-      if (p.complemento || p.referencia) linhas.push(p.complemento || p.referencia);
-    }
-    if (p.observacao || p.obs) {
-      linhas.push("");
-      linhas.push("OBS:");
-      linhas.push(p.observacao || p.obs);
-    }
-    linhas.push("");
-    linhas.push(sep);
-    if (p.subtotal != null) linhas.push("Subtotal             R$ " + (Number(p.subtotal) || 0).toFixed(2).replace(".", ","));
-    if (p.taxa) linhas.push("Entrega               R$ " + (Number(p.taxa) || 0).toFixed(2).replace(".", ","));
-    if (p.desconto) linhas.push("Desconto             -R$ " + (Number(p.desconto) || 0).toFixed(2).replace(".", ","));
-    linhas.push("TOTAL                 R$ " + (Number(p.total) || 0).toFixed(2).replace(".", ","));
-    linhas.push("");
-    let pag = "PAGAMENTO: " + (p.formaPagamento || "—");
-    if (p.troco) pag += " (troco " + p.troco + ")";
-    linhas.push(pag);
-    linhas.push(sep);
-    linhas.push("");
-    return linhas.join("\n");
-  }
-
-  function montarTextoPedidoNavegador(p) {
-    const linhas = [];
-    linhas.push("🛒 *ITENS DO PEDIDO*");
-    (p.itens || []).forEach((i) => {
-      let linha = `${i.quantidade || 1}x ${i.nome || "Item"}`;
-      if (i.preco) linha += ` - ${formatarPreco(i.preco)}`;
-      linhas.push(linha);
-      if (i.observacao) linhas.push(`   Obs.: ${i.observacao}`);
-    });
-    linhas.push("");
-    linhas.push("👤 *CLIENTE*");
-    if (p.cliente) linhas.push(p.cliente);
-    if (p.telefone) linhas.push(p.telefone);
-    linhas.push("");
-    if ((p.tipoEntrega || "entrega") === "retirada") {
-      linhas.push("📍 *RETIRADA NO LOCAL*");
-    } else {
-      linhas.push("📍 *ENTREGA*");
-      if (p.endereco) linhas.push(p.endereco);
-      if (p.bairro) linhas.push(`Bairro: ${p.bairro}`);
-      if (p.complemento || p.referencia) linhas.push(`Comp.: ${p.complemento || p.referencia}`);
-    }
-    linhas.push("");
-    linhas.push("💰 *PAGAMENTO*");
-    linhas.push(p.formaPagamento || "Não informado");
-    if (p.troco) linhas.push(`Troco para: ${p.troco}`);
-    linhas.push("");
-    linhas.push(`💵 *TOTAL: ${formatarPreco(p.total || 0)}*`);
-    if (p.observacao || p.obs) {
-      linhas.push("");
-      linhas.push("📝 *OBSERVAÇÕES*");
-      linhas.push(p.observacao || p.obs);
-    }
-    return linhas.join("\n");
-  }
-
-  function abrirImpressaoNavegador(pedido, janelaPreparada = null) {
-    try {
-      localStorage.setItem("brutus-imprimir-pedido:importado-painel", JSON.stringify({
-        texto: montarTextoPedidoNavegador(pedido),
-        numero: pedido.numero || "MANUAL",
-        largura: "w-80",
-        ts: Date.now(),
-      }));
-    } catch (e) {}
-    let janela = janelaPreparada;
-    if (janela && !janela.closed) {
-      janela.location.href = "extra/imprimir-pedido.html?origem=painel";
-    } else {
-      janela = window.open("extra/imprimir-pedido.html?origem=painel", "_blank", "noopener");
-    }
-    if (!janela) {
-      mostrarToast("O navegador bloqueou a nova aba. Libere pop-ups e tente novamente.", "error", 6000);
-      return false;
-    }
-    mostrarToast("Impressão sem QZ aberta em outra aba.", "info");
-    return true;
-  }
-
-  async function conectarQzTray() {
-    if (typeof qz === "undefined") {
-      setImpressoraStatus(false, "🔴 QZ não instalado");
-      qzConectado = false;
-      return false;
-    }
-    try {
-      if (!qz.websocket.isActive()) await qz.websocket.connect();
-      qzConectado = true;
-      try {
-        const printers = await qz.printers.find();
-        // Evita o erro "Cannot read properties of undefined (reading '0')"
-        // quando a lista vem vazia ou undefined
-        if (Array.isArray(printers) && printers.length > 0) {
-          impressoraNome = printers[0];
-        } else if (typeof printers === "string" && printers.trim()) {
-          impressoraNome = printers;
+    container.querySelectorAll(".sel-status-pedido").forEach((sel) => {
+      sel.addEventListener("change", async () => {
+        const id = sel.dataset.id;
+        const status = sel.value;
+        if (window.BRUTUS_API && window.BRUTUS_API.token()) {
+          try {
+            await window.BRUTUS_API.request(`/api/pedidos/${encodeURIComponent(id)}/status`, {
+              method: "PATCH",
+              body: JSON.stringify({ status }),
+            });
+            mostrarToast(`Status → ${STATUS_LABEL[status] || status}`, "success");
+            await sincronizarPedidos();
+            renderizarPedidosLista();
+            renderizarDashboardPedidos();
+            renderizarRelatorios();
+          } catch (e) {
+            mostrarToast(e.message || "Falha ao atualizar status.", "error");
+          }
         } else {
-          impressoraNome = null; // usa a impressora padrão do Windows
+          const lista2 = lerPedidos();
+          const p = lista2.find((x) => x.id === id || x.numero === id);
+          if (p) { p.status = status; salvarPedidos(lista2); }
+          mostrarToast("Status atualizado localmente (sem API).", "info");
         }
-      } catch (e) {
-        impressoraNome = null;
-      }
-      setImpressoraStatus(
-        true,
-        impressoraNome ? "🟢 " + impressoraNome : "🟢 Impressora padrão"
-      );
-      return true;
-    } catch (e) {
-      qzConectado = false;
-      setImpressoraStatus(false, "🔴 Impressora");
-      return false;
-    }
-  }
-
-  async function imprimirPedido(pedido, opts = {}) {
-    if (!opts.manual && !(await reservarImpressaoServidor(pedido))) return false;
-    const texto = montarTextoCupomTermico(pedido);
-    const ok = qzConectado || (await conectarQzTray());
-    if (!ok) {
-      if (opts.manual) {
-        abrirImpressaoNavegador(pedido);
-        mostrarToast("QZ indisponível — impressão do navegador.", "info");
-      }
-      return false;
-    }
-    try {
-      // Nunca passa null/undefined para create — isso causava o erro "reading '0'"
-      const cfg = impressoraNome
-        ? qz.configs.create(impressoraNome)
-        : qz.configs.create(); // impressora padrão do sistema
-      await qz.print(cfg, [{ type: "raw", format: "plain", data: texto + "\n\n\n" }]);
-      const atualizado = await marcarImpressaoServidor(pedido);
-      if (atualizado && atualizado.id) {
-        const i = pedidosCache.findIndex((x) => x.id === atualizado.id);
-        if (i >= 0) pedidosCache[i] = atualizado;
-        renderizarPedidosLista();
-      }
-      if (opts.manual) mostrarToast("Comanda enviada à impressora.", "success");
-      return true;
-    } catch (e) {
-      if (opts.manual) {
-        const msg = (e && e.message) ? e.message : "erro desconhecido";
-        mostrarToast("Falha na impressão: " + msg, "error");
-        abrirImpressaoNavegador(pedido);
-      }
-      return false;
-    }
-  }
-
-  function autoPrintAtivo() {
-    try {
-      const v = localStorage.getItem(AUTO_PRINT_KEY);
-      if (v === null) return true;
-      return v === "1";
-    } catch (e) { return true; }
-  }
-
-  function talvezImprimirAutomatico(pedido) {
-    if (!autoPrintAtivo()) return;
-    if (!qzConectado) return;
-    if (pedido.impressoEm) return;
-    imprimirPedido(pedido, { manual: false });
-  }
-
-  async function iniciarSsePedidos() {
-    if (sseSource) { try { sseSource.close(); } catch (e) {} sseSource = null; }
-    if (!window.BRUTUS_API || !window.BRUTUS_API.token()) return;
-    const base = window.BRUTUS_API.base || "";
-    const tok = window.BRUTUS_API.token();
-    const controller = new AbortController();
-    sseSource = { close() { controller.abort(); } };
-
-    async function tratarEvento(nome, data) {
-      if (nome === "novo") {
-        try {
-          const pedido = JSON.parse(data);
-          tocarAlertaNovoPedido();
-          mostrarBannerNovoPedido(pedido);
-          mostrarToast("Novo pedido #" + (pedido.numero || ""), "success");
-          talvezImprimirAutomatico(pedido);
-          await sincronizarPedidos({ alertar: false });
-          if (state.abaAtiva === "pedidos") renderizarPedidosLista();
-          if (state.abaAtiva === "dashboard") renderizarDashboardPedidos();
-        } catch (e) {}
-      } else if (nome === "status") {
-        await sincronizarPedidos({ alertar: false });
-        if (state.abaAtiva === "pedidos") renderizarPedidosLista();
-      }
-    }
-
-    try {
-      const resposta = await fetch(base + "/api/pedidos/stream", {
-        method: "GET",
-        headers: {
-          Authorization: "Bearer " + tok,
-          Accept: "text/event-stream",
-        },
-        cache: "no-store",
-        signal: controller.signal,
       });
-      if (!resposta.ok || !resposta.body) throw new Error("SSE HTTP " + resposta.status);
-
-      const reader = resposta.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      while (!controller.signal.aborted) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, "\n");
-        let fim;
-        while ((fim = buffer.indexOf("\n\n")) >= 0) {
-          const bloco = buffer.slice(0, fim);
-          buffer = buffer.slice(fim + 2);
-          let evento = "message";
-          const dados = [];
-          bloco.split("\n").forEach((linha) => {
-            if (linha.startsWith("event:")) evento = linha.slice(6).trim();
-            else if (linha.startsWith("data:")) dados.push(linha.slice(5).trimStart());
-          });
-          if (dados.length) await tratarEvento(evento, dados.join("\n"));
-        }
-      }
-    } catch (e) {
-      if (e && e.name === "AbortError") return;
-    }
-
-    // O polling continua como rede de segurança; o SSE tenta se restabelecer.
-    if (!controller.signal.aborted && window.BRUTUS_API.token()) {
-      setTimeout(iniciarSsePedidos, 3000);
-    }
+    });
   }
 
   function iniciarPollingPedidos() {
@@ -4347,230 +3362,65 @@ a{ color:inherit; }
       if (state.abaAtiva === "pedidos") renderizarPedidosLista();
       if (state.abaAtiva === "dashboard") renderizarDashboardPedidos();
       if (state.abaAtiva === "relatorios") renderizarRelatorios();
-    }, 8000);
-    // Atualiza "há X min" a cada minuto sem pedir a API de novo
-    setInterval(() => {
-      if (!document.hidden && state.abaAtiva === "pedidos") renderizarPedidosLista();
-    }, 60000);
-    iniciarSsePedidos();
+    }, 12000);
   }
-
 
   function abrirModalPedidoManual() {
     $("#f-pm-total").value = "";
+    $("#f-pm-itens").value = "1";
     $("#f-pm-cliente").value = "";
-    $("#f-pm-telefone").value = "";
-    $("#f-pm-tipo").value = "entrega";
-    $("#f-pm-pagamento").value = "";
-    $("#f-pm-endereco").value = "";
-    $("#f-pm-bairro").value = "";
-    $("#f-pm-complemento").value = "";
-    $("#f-pm-lista-itens").value = "";
-    $("#f-pm-troco").value = "";
+    $("#f-pm-produto").value = "";
     $("#f-pm-obs").value = "";
     $("#campo-pm-total").classList.remove("campo-erro");
-    atualizarCamposPedidoManual();
     abrirModal($("#modal-pedido-manual"));
   }
 
-  function atualizarCamposPedidoManual() {
-    const entrega = $("#f-pm-tipo")?.value !== "retirada";
-    if ($("#pm-endereco-campos")) $("#pm-endereco-campos").style.display = entrega ? "" : "none";
-    const dinheiro = $("#f-pm-pagamento")?.value === "Dinheiro";
-    if ($("#campo-pm-troco")) $("#campo-pm-troco").style.display = dinheiro ? "" : "none";
-  }
-
-  function numeroPedidoManual() {
-    const agora = new Date();
-    const hora = String(agora.getHours()).padStart(2, "0");
-    const min = String(agora.getMinutes()).padStart(2, "0");
-    const seg = String(agora.getSeconds()).padStart(2, "0");
-    return `M${hora}${min}${seg}`;
-  }
-
-  function parseItensPedidoManual(texto) {
-    return String(texto || "").split(/\r?\n/).map((linha) => linha.trim()).filter(Boolean).map((linha) => {
-      const match = linha.match(/^(?:(\d+)\s*[xX]\s*)?(.+?)(?:\s*[-–]\s*(?:R\$\s*)?([\d.,]+))?$/);
-      if (!match) return { nome: linha, quantidade: 1, preco: 0 };
-      const quantidade = Math.max(1, parseInt(match[1], 10) || 1);
-      const nome = String(match[2] || linha).trim();
-      let valor = String(match[3] || "").trim();
-      if (valor.includes(",")) valor = valor.replace(/\./g, "").replace(",", ".");
-      const preco = Number.parseFloat(valor) || 0;
-      return { nome, quantidade, preco };
-    });
-  }
-
-  async function salvarPedidoManual() {
+  function salvarPedidoManual() {
     const total = parseFloat($("#f-pm-total").value);
     if (isNaN(total) || total < 0) {
       $("#campo-pm-total").classList.add("campo-erro");
       return;
     }
     $("#campo-pm-total").classList.remove("campo-erro");
-    const itens = parseItensPedidoManual($("#f-pm-lista-itens").value);
-    if (!itens.length) {
-      mostrarToast("Informe pelo menos um item do pedido.", "error");
-      $("#f-pm-lista-itens").focus();
-      return;
-    }
-    const tipoEntrega = $("#f-pm-tipo").value;
+    const qtd = Math.max(1, parseInt($("#f-pm-itens").value, 10) || 1);
+    const produto = $("#f-pm-produto").value.trim() || "Pedido avulso";
     const pedido = {
-      id: "p-manual-" + Date.now().toString(36),
-      numero: numeroPedidoManual(),
+      id: "m-" + Date.now().toString(36),
+      numero: Date.now().toString(36).toUpperCase().slice(-5),
       ts: Date.now(),
-      status: "recebido",
       total,
-      subtotal: total,
-      taxa: 0,
-      desconto: 0,
-      cliente: $("#f-pm-cliente").value.trim() || "Balcão/WhatsApp",
-      telefone: $("#f-pm-telefone").value.trim(),
-      tipoEntrega,
-      formaPagamento: $("#f-pm-pagamento").value,
-      endereco: tipoEntrega === "entrega" ? $("#f-pm-endereco").value.trim() : "",
-      bairro: tipoEntrega === "entrega" ? $("#f-pm-bairro").value.trim() : "",
-      complemento: tipoEntrega === "entrega" ? $("#f-pm-complemento").value.trim() : "",
-      referencia: tipoEntrega === "entrega" ? $("#f-pm-complemento").value.trim() : "",
-      troco: $("#f-pm-pagamento").value === "Dinheiro" ? $("#f-pm-troco").value.trim() : "",
+      cliente: $("#f-pm-cliente").value.trim(),
+      tipoEntrega: "manual",
       manual: true,
-      origem: "painel-manual",
-      observacao: $("#f-pm-obs").value.trim(),
       obs: $("#f-pm-obs").value.trim(),
-      produtoPrincipal: itens[0].nome,
-      itens,
+      produtoPrincipal: produto,
+      itens: [{ nome: produto, quantidade: qtd, preco: total }],
     };
-
-    const btn = $("#btn-pm-salvar");
-    // Reserva a aba ainda dentro do clique do usuário; assim o navegador não
-    // bloqueia a impressão depois que o salvamento assíncrono terminar.
-    const janelaImpressao = window.open("about:blank", "_blank");
-    if (janelaImpressao) {
-      try { janelaImpressao.opener = null; } catch (e) {}
-    }
-    if (btn) btn.disabled = true;
-    let pedidoSalvo = pedido;
-    try {
-      if (window.BRUTUS_API && window.BRUTUS_API.token()) {
-        pedidoSalvo = await window.BRUTUS_API.request("/api/pedidos", {
-          method: "POST",
-          body: JSON.stringify(pedido),
-        });
-        await sincronizarPedidos({ alertar: false });
-      } else {
-        registrarPedidoLocal(pedido);
-      }
-    } catch (e) {
-      registrarPedidoLocal(pedido);
-      mostrarToast("Servidor indisponível: pedido salvo somente neste computador.", "info", 6000);
-    } finally {
-      if (btn) btn.disabled = false;
-    }
+    registrarPedidoLocal(pedido);
     registrarHistorico("Pedido registrado", `#${pedido.numero} — ${formatarPreco(total)}`);
     fecharModal($("#modal-pedido-manual"));
     renderizarPedidosLista();
     renderizarRelatorios();
     renderizarDashboardPedidos();
-    abrirImpressaoNavegador(pedidoSalvo, janelaImpressao);
-    mostrarToast("Pedido manual registrado. Impressão sem QZ aberta.", "success");
+    mostrarToast("Pedido registrado no histórico local.", "success");
   }
 
   function iniciarAbaPedidos() {
     $("#btn-pedidos-registrar")?.addEventListener("click", abrirModalPedidoManual);
-    $("#btn-imprimir-whatsapp")?.addEventListener("click", () => {
-      const janela = window.open("extra/imprimir-pedido.html", "_blank", "noopener");
-      if (!janela) mostrarToast("Libere pop-ups para abrir a impressão do WhatsApp.", "error", 6000);
-    });
-    $("#f-pm-tipo")?.addEventListener("change", atualizarCamposPedidoManual);
-    $("#f-pm-pagamento")?.addEventListener("change", atualizarCamposPedidoManual);
-    $("#btn-pedidos-atualizar")?.addEventListener("click", async () => {
-      await sincronizarPedidos({ alertar: false });
+    $("#btn-pedidos-limpar")?.addEventListener("click", () => {
+      if (!confirm("Apagar todos os pedidos salvos neste navegador?")) return;
+      salvarPedidos([]);
       renderizarPedidosLista();
+      renderizarRelatorios();
       renderizarDashboardPedidos();
-      mostrarToast("Pedidos atualizados.", "success");
+      mostrarToast("Histórico de pedidos limpo.", "success");
     });
-    const wireFiltro = (id, key) => {
-      const el = $(id);
-      if (!el) return;
-      el.addEventListener("input", () => {
-        pedidosFiltro[key] = el.value;
-        renderizarPedidosLista();
-      });
-      el.addEventListener("change", () => {
-        pedidosFiltro[key] = el.value;
-        renderizarPedidosLista();
-      });
-    };
-    wireFiltro("#pedidos-busca", "busca");
-    wireFiltro("#pedidos-filtro-periodo", "periodo");
-    wireFiltro("#pedidos-filtro-tipo", "tipo");
-    wireFiltro("#pedidos-filtro-status", "status");
-
     $("#btn-pm-salvar")?.addEventListener("click", salvarPedidoManual);
     $("#btn-pm-cancelar")?.addEventListener("click", () => fecharModal($("#modal-pedido-manual")));
     $("#modal-pedido-manual-fechar")?.addEventListener("click", () => fecharModal($("#modal-pedido-manual")));
     $("#modal-pedido-manual")?.addEventListener("click", (ev) => {
       if (ev.target.id === "modal-pedido-manual") fecharModal($("#modal-pedido-manual"));
     });
-    $("#btn-testar-impressora")?.addEventListener("click", async () => {
-      const ok = await conectarQzTray();
-      if (!ok) {
-        mostrarToast("Instale e abra o QZ Tray (qz.io/download).", "error", 6000);
-        return;
-      }
-      await imprimirPedido({
-        numero: "TESTE",
-        ts: Date.now(),
-        cliente: "Teste de impressão",
-        telefone: "00 00000-0000",
-        endereco: "Rua Teste, 100",
-        bairro: "Centro",
-        itens: [{ nome: "Item de teste", quantidade: 1, preco: 1 }],
-        formaPagamento: "PIX",
-        total: 1,
-        subtotal: 1,
-        observacao: "Comanda de teste",
-      }, { manual: true });
-    });
-    $("#btn-reconectar-qz")?.addEventListener("click", async () => {
-      qzConectado = false;
-      await conectarQzTray();
-    });
-    $("#btn-testar-som")?.addEventListener("click", () => {
-      try { localStorage.removeItem(MUDO_ATE_KEY); } catch (e) {}
-      tocarAlertaNovoPedido();
-      mostrarToast("Som de teste.", "info");
-    });
-    const chk = $("#cfg-auto-print");
-    if (chk) {
-      try { chk.checked = autoPrintAtivo(); } catch (e) {}
-      chk.addEventListener("change", () => {
-        try { localStorage.setItem(AUTO_PRINT_KEY, chk.checked ? "1" : "0"); } catch (e) {}
-      });
-    }
-    const chkSom = $("#cfg-som-alerta");
-    if (chkSom) {
-      try {
-        const v = localStorage.getItem(SOM_KEY);
-        chkSom.checked = v === null ? true : v === "1";
-      } catch (e) {}
-      chkSom.addEventListener("change", () => {
-        try { localStorage.setItem(SOM_KEY, chkSom.checked ? "1" : "0"); } catch (e) {}
-      });
-    }
-    const chkMudo = $("#cfg-som-mudo");
-    if (chkMudo) {
-      chkMudo.addEventListener("change", () => {
-        try {
-          if (chkMudo.checked) {
-            localStorage.setItem(MUDO_ATE_KEY, String(Date.now() + 15 * 60 * 1000));
-            mostrarToast("Som silenciado por 15 minutos.", "info");
-          } else {
-            localStorage.removeItem(MUDO_ATE_KEY);
-          }
-        } catch (e) {}
-      });
-    }
   }
 
   /* ---------- Relatórios ---------- */
@@ -4615,7 +3465,7 @@ a{ color:inherit; }
         <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value">${pedidos.length}</div><div class="stat-label">Pedidos</div></div>
         <div class="stat-card"><div class="stat-icon">💵</div><div class="stat-value accent">${formatarPreco(faturamento)}</div><div class="stat-label">Faturamento</div></div>
         <div class="stat-card"><div class="stat-icon">🎟️</div><div class="stat-value">${formatarPreco(ticket)}</div><div class="stat-label">Ticket médio</div></div>
-        <div class="stat-card"><div class="stat-icon">🏆</div><div class="stat-value" style="font-size:15px;">${escaparHtml(top[0]?.nome || "—")}</div><div class="stat-label">Mais vendido</div></div>
+        <div class="stat-card"><div class="stat-icon">🏆</div><div class="stat-value" style="font-size:15px;">${top[0]?.nome || "—"}</div><div class="stat-label">Mais vendido</div></div>
       `;
     }
     const topEl = $("#rel-top-produtos");
@@ -4628,7 +3478,7 @@ a{ color:inherit; }
         topEl.className = "";
         topEl.innerHTML = top.map((t) => `
           <div class="rel-bar-row">
-            <div class="rb-nome" title="${escaparHtml(t.nome)}">${escaparHtml(t.nome)}</div>
+            <div class="rb-nome" title="${t.nome}">${t.nome}</div>
             <div class="rb-track"><div class="rb-fill" style="width:${Math.round((t.qtd / max) * 100)}%"></div></div>
             <div class="rb-val">${t.qtd} un.</div>
           </div>
@@ -4662,10 +3512,10 @@ a{ color:inherit; }
         listaEl.innerHTML = pedidos.slice(0, 30).map((p) => `
           <div class="pedido-item">
             <div class="pi-topo">
-              <div><div class="pi-id">#${escaparHtml(p.numero || "—")}</div><div class="pi-hora">${formatarHoraPedido(p.ts)}</div></div>
+              <div><div class="pi-id">#${p.numero || "—"}</div><div class="pi-hora">${formatarHoraPedido(p.ts)}</div></div>
               <div class="pi-total">${formatarPreco(p.total || 0)}</div>
             </div>
-            <div class="pi-meta">${escaparHtml(p.cliente || "Cliente")} · ${escaparHtml((p.itens || []).map((i) => i.nome).slice(0, 3).join(", ") || p.produtoPrincipal || "")}</div>
+            <div class="pi-meta">${p.cliente || "Cliente"} · ${(p.itens || []).map((i) => i.nome).slice(0, 3).join(", ") || p.produtoPrincipal || ""}</div>
           </div>
         `).join("");
       }
@@ -4736,7 +3586,7 @@ a{ color:inherit; }
 
     ({ pedidos, faturamento, ticket, top } = agregarRelatorios("hoje"));
     andamento = (pedidosCache.length ? pedidosCache : lerPedidos()).filter((p) =>
-      ["recebido", "preparando", "pronto", "saiu_entrega"].includes(p.status || "recebido")
+      ["recebido", "preparando", "saiu_entrega"].includes(p.status || "recebido")
     ).length;
     set("#stat-pedidos-hoje", String(pedidos.length));
     set("#stat-faturamento-hoje", formatarPreco(faturamento));
@@ -4987,8 +3837,6 @@ a{ color:inherit; }
         renderizarRelatorios();
       });
       iniciarPollingPedidos();
-      // tenta conectar QZ Tray em silêncio (não quebra se não estiver instalado)
-      setTimeout(() => { try { conectarQzTray(); } catch (e) {} }, 800);
     } catch (e) {
       console.error(e);
       mostrarToast("Não foi possível carregar o cardápio. Verifique data/menu.json.", "error", 6000);
@@ -5004,9 +3852,10 @@ a{ color:inherit; }
 </div><!-- fim #app-painel-produtos -->
 
 <script>
-  /* ---------- Login seguro (sessão no servidor) ---------- */
+  /* ---------- Login (API se disponível, senão fallback local) ---------- */
   (function () {
     const CFG = window.SITE_CONFIG || {};
+    const SENHA_LEGADA = CFG.senhaPainel || "5625";
     const API_BASE = (CFG.apiBase || "").replace(/\/$/, "");
     const KEY_SESSAO = "brutus-painel:autenticado";
     const KEY_TOKEN = "brutus-painel:token";
@@ -5017,14 +3866,6 @@ a{ color:inherit; }
     const senhaInput = document.getElementById("senha-input");
     const senhaErro = document.getElementById("senha-erro");
     const btnEntrar = document.getElementById("btn-entrar");
-
-    function limparSessaoLocal() {
-      try {
-        sessionStorage.removeItem(KEY_SESSAO);
-        sessionStorage.removeItem(KEY_TOKEN);
-        sessionStorage.removeItem(KEY_USER);
-      } catch (e) {}
-    }
 
     window.BRUTUS_API = {
       base: API_BASE,
@@ -5037,11 +3878,6 @@ a{ color:inherit; }
         const res = await fetch(url, { ...opts, headers });
         let data = null;
         try { data = await res.json(); } catch (e) {}
-        if (res.status === 401) {
-          limparSessaoLocal();
-          if (telaSenha) telaSenha.style.display = "flex";
-          if (appPainel) appPainel.style.display = "none";
-        }
         if (!res.ok) {
           const err = new Error((data && data.erro) || ("HTTP " + res.status));
           err.status = res.status;
@@ -5055,18 +3891,6 @@ a{ color:inherit; }
           const res = await fetch((this.base || "") + "/api/health", { cache: "no-store" });
           return res.ok;
         } catch (e) { return false; }
-      },
-      async logout() {
-        try {
-          const tok = this.token();
-          if (tok) {
-            await fetch((this.base || "") + "/api/auth/logout", {
-              method: "POST",
-              headers: { Authorization: "Bearer " + tok, "Content-Type": "application/json" },
-            });
-          }
-        } catch (e) {}
-        limparSessaoLocal();
       }
     };
 
@@ -5076,86 +3900,58 @@ a{ color:inherit; }
       if (senhaInput) senhaInput.blur();
     }
 
-    function bloquear(msg) {
-      limparSessaoLocal();
-      if (appPainel) appPainel.style.display = "none";
-      if (telaSenha) telaSenha.style.display = "flex";
-      if (senhaErro && msg) senhaErro.textContent = msg;
-    }
-
     async function tentar() {
       const usuario = (usuarioInput && usuarioInput.value.trim()) || "admin";
       const senha = senhaInput.value.trim();
       senhaErro.textContent = "";
-      if (!senha) {
-        senhaErro.textContent = "Informe a senha.";
-        return;
-      }
       btnEntrar.disabled = true;
       try {
-        senhaErro.textContent = "Conectando ao servidor...";
-        console.log("[painel-auth] enviando login para", (window.BRUTUS_API.base || "") + "/api/auth/login");
-        const data = await window.BRUTUS_API.request("/api/auth/login", {
-          method: "POST",
-          cache: "no-store",
-          body: JSON.stringify({ usuario, senha }),
-        });
-        console.log("[painel-auth] login aceito pelo servidor");
-        senhaErro.textContent = "";
-        try {
-          sessionStorage.setItem(KEY_SESSAO, "1");
-          sessionStorage.setItem(KEY_TOKEN, data.token);
-          sessionStorage.setItem(KEY_USER, data.usuario || usuario);
-        } catch (e) {}
-        if (senhaInput) senhaInput.value = "";
-        liberar();
+        const apiUp = await window.BRUTUS_API.health();
+        if (apiUp) {
+          const data = await window.BRUTUS_API.request("/api/auth/login", {
+            method: "POST",
+            body: JSON.stringify({ usuario, senha }),
+          });
+          try {
+            sessionStorage.setItem(KEY_SESSAO, "1");
+            sessionStorage.setItem(KEY_TOKEN, data.token);
+            sessionStorage.setItem(KEY_USER, data.usuario || usuario);
+          } catch (e) {}
+          liberar();
+          return;
+        }
+        // Offline / sem API: aceita senha legada ou admin/5625
+        if (senha === SENHA_LEGADA || (usuario === "admin" && senha === SENHA_LEGADA)) {
+          try {
+            sessionStorage.setItem(KEY_SESSAO, "1");
+            sessionStorage.removeItem(KEY_TOKEN);
+          } catch (e) {}
+          liberar();
+          return;
+        }
+        senhaErro.textContent = "Usuário ou senha incorretos.";
+        senhaInput.value = "";
+        senhaInput.focus();
       } catch (e) {
-        senhaErro.textContent = e.message || "Usuário ou senha incorretos.";
-        if (senhaInput) { senhaInput.value = ""; senhaInput.focus(); }
+        senhaErro.textContent = e.message || "Falha no login.";
       } finally {
         btnEntrar.disabled = false;
       }
     }
 
-    async function validarSessaoExistente() {
-      const tok = window.BRUTUS_API.token();
-      if (!tok) {
-        bloquear("");
-        return false;
-      }
-      try {
-        const apiUp = await window.BRUTUS_API.health();
-        if (!apiUp) {
-          bloquear("Servidor offline.");
-          return false;
-        }
-        await window.BRUTUS_API.request("/api/auth/me");
-        liberar();
-        return true;
-      } catch (e) {
-        bloquear("Sessão expirada. Entre novamente.");
-        return false;
-      }
-    }
-
-    // Botão sair (se existir na topbar)
-    document.getElementById("btn-sair-painel")?.addEventListener("click", async () => {
-      await window.BRUTUS_API.logout();
-      bloquear("");
+    let jaAutenticado = false;
+    try { jaAutenticado = sessionStorage.getItem(KEY_SESSAO) === "1"; } catch (e) {}
+    if (jaAutenticado) {
+      liberar();
+    } else {
       if (usuarioInput) usuarioInput.value = "admin";
-      if (senhaInput) senhaInput.focus();
-    });
+      (usuarioInput || senhaInput).focus();
+    }
 
     btnEntrar.addEventListener("click", tentar);
     senhaInput.addEventListener("keydown", (e) => { if (e.key === "Enter") tentar(); });
     if (usuarioInput) usuarioInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") senhaInput.focus();
-    });
-
-    // Só libera o painel se a sessão ainda for válida no servidor
-    if (usuarioInput) usuarioInput.value = "admin";
-    validarSessaoExistente().then((ok) => {
-      if (!ok && senhaInput) senhaInput.focus();
     });
   })();
 </script>

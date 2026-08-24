@@ -1,17 +1,18 @@
 /* =========================================================================
    site-config.js — CONFIGURAÇÃO CENTRAL DO SITE
    -------------------------------------------------------------------------
-   Este arquivo é lido por index.html, painel.html e painel-produtos.html.
+   Este arquivo é lido por index.html e painel.html.
+   NÃO coloque senhas ou chaves PIX aqui (use variáveis de ambiente no Render).
    ========================================================================= */
 
 window.SITE_CONFIG = {
 
-  // Senha legada (painel.html / fallback offline). Com a API rodando,
-  // o login do painel-produtos usa usuario+senha em backend/data/auth.json.
-  senhaPainel: "5625",
+  // Versão do app — só usada em logs e no aviso de "nova versão disponível"
+  // (ver js/app.js, seção PWA). Suba esse número junto com CACHE_VERSION em
+  // sw.js sempre que publicar uma atualização de verdade.
+  appVersion: "1.4.0",
 
-  // URL da API. Vazio = mesma origem (quando o site é servido pelo backend).
-  // Ex. em dev separado: "http://localhost:3000"
+  // Edição independente: pedidos enviados diretamente pelo WhatsApp.
   apiBase: "",
 
   tema: {

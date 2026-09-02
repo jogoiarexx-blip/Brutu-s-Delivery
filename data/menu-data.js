@@ -5,8 +5,8 @@ window.MENU_DATA = {
     "slogan": "O sabor é bruto, a fome não tem chance!",
     "logo": "icons/icon-512.png",
     "bannerTexto": "COMBO ESQUADRÃO · a partir de R$ 63,90",
-    "bannerImagem": "",
-    "bannerImagemAlt": "",
+    "bannerImagem": "img/promo/banner-brutus-premium.webp",
+    "bannerImagemAlt": "Hambúrguer artesanal Brutu's com bacon e cheddar",
     "whatsapp": "5516993319742",
     "pix": {
       "chave": "",
@@ -16,7 +16,7 @@ window.MENU_DATA = {
       "protegido": true
     },
     "taxaEntrega": 5,
-    "pedidoMinimoEntrega": 0,
+    "pedidoMinimoEntrega": 20,
     "tempoEstimado": "40-60 min",
     "enderecoRetirada": "Rua Seis de Janeiro, 806 - Em frente ao Pé na Areia",
     "horario": {
@@ -128,6 +128,16 @@ window.MENU_DATA = {
     {
       "id": "acomp-suco",
       "nome": "Suco Frupic 450ml (uva ou laranja)",
+      "preco": 0
+    },
+    {
+      "id": "acomp-refri-1l",
+      "nome": "Refrigerante 1L (consulte sabores disponíveis)",
+      "preco": 0
+    },
+    {
+      "id": "acomp-refri-2l",
+      "nome": "Refrigerante 2L (consulte sabores disponíveis)",
       "preco": 0
     }
   ],
@@ -293,7 +303,7 @@ window.MENU_DATA = {
       "categoria": "hamburgueres-gourmet",
       "nome": "Brutu's Bacon",
       "descricao": "Pão, hambúrguer, cheddar cremoso, bacon crocante e molho especial.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Brutus+Bacon",
+      "foto": "img/produtos/brutus-bacon.webp",
       "preco": 30.9,
       "ingredientes": [
         "Pão",
@@ -316,7 +326,7 @@ window.MENU_DATA = {
       "categoria": "hamburgueres-gourmet",
       "nome": "Brutu's Cheddar Duplo",
       "descricao": "Dois hambúrgueres, muito cheddar, cebola caramelizada e bacon.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Brutus+Cheddar+Duplo",
+      "foto": "img/produtos/brutus-cheddar-duplo.webp",
       "preco": 35.9,
       "ingredientes": [
         "Pão",
@@ -414,7 +424,7 @@ window.MENU_DATA = {
       "categoria": "hamburgueres-gourmet",
       "nome": "Brutu's Raiz",
       "descricao": "Hambúrguer, catupiry, ovo, presunto, alface, tomate e molho da casa.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Brutus+Raiz",
+      "foto": "img/produtos/brutus-raiz.webp",
       "preco": 35.9,
       "ingredientes": [
         "Pão",
@@ -440,7 +450,7 @@ window.MENU_DATA = {
       "categoria": "hamburgueres-gourmet",
       "nome": "X Burguer Brutus",
       "descricao": "Pão, hambúrguer e queijo.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=X+Burguer",
+      "foto": "img/produtos/x-burguer-brutus.webp",
       "preco": 23.9,
       "ingredientes": [
         "Pão",
@@ -461,7 +471,7 @@ window.MENU_DATA = {
       "categoria": "hamburgueres-gourmet",
       "nome": "BRUTU'S PICKLES",
       "descricao": "Pão macio, hambúrguer artesanal, cheddar cremoso, cebola roxa, picles crocantes e molho especial de picles.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=BRUTUS+PICKLES",
+      "foto": "img/produtos/brutus-pickles.webp",
       "preco": 38.9,
       "ingredientes": [
         "Pão macio",
@@ -508,7 +518,7 @@ window.MENU_DATA = {
       "categoria": "especiais",
       "nome": "Pappy Burger",
       "descricao": "Pão, hambúrguer, fatia de cheddar, bacon, catupiry, alface e tomate.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Pappy+Burger",
+      "foto": "img/produtos/pappy-burger.webp",
       "preco": 29.99,
       "ingredientes": [
         "Pão",
@@ -564,7 +574,7 @@ window.MENU_DATA = {
       "categoria": "especiais",
       "nome": "Brutus na Chapa",
       "descricao": "Pão, salsicha, bacon, batata palha, molho da casa, ovo, presunto, muçarela, alface e tomate.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Brutus+na+Chapa",
+      "foto": "img/produtos/brutus-na-chapa.webp",
       "preco": 27,
       "ingredientes": [
         "Pão",
@@ -622,7 +632,7 @@ window.MENU_DATA = {
       "categoria": "especiais",
       "nome": "Bruto Power",
       "descricao": "Pão, hambúrguer, bacon, muçarela, catupiry, cebola roxa, tomate, rúcula e molho da casa.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Bruto+Power",
+      "foto": "img/produtos/bruto-power.webp",
       "preco": 27.99,
       "ingredientes": [
         "Pão",
@@ -1043,13 +1053,13 @@ window.MENU_DATA = {
     {
       "id": "c008",
       "categoria": "combos",
-      "nome": "Combo Individual X Brutus Clássico",
-      "descricao": "1 X Brutus Clássico, batata frita 200g e 1 refrigerante 200ml ou suco 450ml.",
+      "nome": "Combo Individual",
+      "descricao": "1 X Brutus Clássico com bacon, batata 200g e 1 refrigerante 200ml ou suco 450ml.",
       "foto": "img/produtos/brutus-classico.jpg",
       "preco": 37.99,
       "ingredientes": [
-        "1x X Brutus Clássico",
-        "1x Batata frita 200g",
+        "1x X Brutus Clássico com bacon",
+        "1x Batata 200g",
         "1x Refrigerante 200ml ou Suco 450ml"
       ],
       "adicionais": [
@@ -1064,27 +1074,36 @@ window.MENU_DATA = {
         "acomp-suco"
       ],
       "escolhaUnicaTitulo": "Escolha a bebida do combo",
+      "escolhaObrigatoria": true,
+      "escolhaUnicaGlobal": true,
       "destaque": true,
       "lancamento": false
     },
     {
       "id": "c009",
       "categoria": "combos",
-      "nome": "Combo Duplo X Brutus Clássico",
-      "descricao": "2 X Brutus Clássicos, batata frita 200g e 1 refrigerante 1L.",
+      "nome": "Combo Duplo",
+      "descricao": "2 X Brutus Clássicos com bacon, batata 200g e 1 refrigerante 1L.",
       "foto": "img/produtos/combo-esquadrao.jpg",
       "preco": 69.99,
       "ingredientes": [
-        "2x X Brutus Clássico",
-        "1x Batata frita 200g",
+        "2x X Brutus Clássico com bacon",
+        "1x Batata 200g",
         "1x Refrigerante 1L"
       ],
       "adicionais": [
+        "acomp-refri-1l",
         "add-bacon",
         "add-cheddar",
         "add-ovo",
         "add-hamburguer-extra"
       ],
+      "escolhaUnicaIds": [
+        "acomp-refri-1l"
+      ],
+      "escolhaUnicaTitulo": "Bebida incluída no combo",
+      "escolhaObrigatoria": true,
+      "escolhaUnicaGlobal": true,
       "destaque": true,
       "lancamento": false,
       "qtdLanches": 2
@@ -1092,21 +1111,28 @@ window.MENU_DATA = {
     {
       "id": "c010",
       "categoria": "combos",
-      "nome": "Combo Família X Brutus Clássico",
-      "descricao": "3 X Brutus Clássicos, batata frita 400g e 1 refrigerante 2L.",
+      "nome": "Combo Família",
+      "descricao": "3 X Brutus Clássicos com bacon, batata 400g e 1 refrigerante 2L.",
       "foto": "img/produtos/combo-familia-brutus.jpg",
       "preco": 99.99,
       "ingredientes": [
-        "3x X Brutus Clássico",
-        "1x Batata frita 400g",
+        "3x X Brutus Clássico com bacon",
+        "1x Batata 400g",
         "1x Refrigerante 2L"
       ],
       "adicionais": [
+        "acomp-refri-2l",
         "add-bacon",
         "add-cheddar",
         "add-ovo",
         "add-hamburguer-extra"
       ],
+      "escolhaUnicaIds": [
+        "acomp-refri-2l"
+      ],
+      "escolhaUnicaTitulo": "Bebida incluída no combo",
+      "escolhaObrigatoria": true,
+      "escolhaUnicaGlobal": true,
       "destaque": true,
       "lancamento": false,
       "qtdLanches": 3
@@ -1217,7 +1243,7 @@ window.MENU_DATA = {
       "categoria": "hamburgueres-gourmet",
       "nome": "Brutus Prime",
       "descricao": "Pão, hambúrguer, muçarela, catupiry, cebola caramelizada, tomate e rúcula.",
-      "foto": "https://placehold.co/600x450/241c17/ffb703?text=Brutus+Prime",
+      "foto": "img/produtos/brutus-prime.webp",
       "preco": 27.99,
       "ingredientes": [
         "Pão",

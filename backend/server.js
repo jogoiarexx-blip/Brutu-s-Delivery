@@ -557,15 +557,18 @@ function adicionaisOficiais(menu, produto, item) {
     : [Array.isArray(item.adicionaisIds) ? item.adicionaisIds : []];
   const normalizados = [];
   let total = 0;
+  let quantidadeEscolhas = 0;
   for (const grupoRecebido of gruposRecebidos.slice(0, 10)) {
     const ids = [...new Set((Array.isArray(grupoRecebido) ? grupoRecebido : []).map(String))];
     if (ids.filter((id) => escolhaUnica.has(id)).length > 1) {
       throw erroPedido(400, `Escolha inválida de adicionais para ${produto.nome}.`);
     }
+    quantidadeEscolhas += ids.filter((id) => escolhaUnica.has(id)).length;
     const grupo = [];
     for (const id of ids) {
       const adicional = catalogo.get(id);
-      if (!adicional || !permitidos.has(id)) {
+      if (!adicional || !permitidos.has(id) || adicional.disponivel === false ||
+          (adicional.estoque !== undefined && adicional.estoque !== null && adicional.estoque !== "" && Number(adicional.estoque) <= 0)) {
         throw erroPedido(400, `Adicional inválido para ${produto.nome}.`);
       }
       const oficial = { id, nome: String(adicional.nome || "Adicional"), preco: moeda(adicional.preco || 0) };
@@ -573,6 +576,9 @@ function adicionaisOficiais(menu, produto, item) {
       normalizados.push(oficial);
       total += oficial.preco;
     }
+  }
+  if (quantidadeEscolhas > 1 || (produto.escolhaObrigatoria === true && quantidadeEscolhas !== 1)) {
+    throw erroPedido(400, `Escolha obrigatória inválida para ${produto.nome}.`);
   }
   return { adicionais: normalizados, total: moeda(total) };
 }
@@ -594,7 +600,8 @@ function calcularPedidoPublico(body) {
     if (recebido?.premioRoleta === true) continue; // será incluído abaixo após validação
     const produtoId = String(recebido?.produtoId || "").trim();
     const produto = menu.produtos.find((p) => String(p.id) === produtoId);
-    if (!produto || produto.disponivel === false) {
+    if (!produto || produto.disponivel === false ||
+        (produto.estoque !== undefined && produto.estoque !== null && produto.estoque !== "" && Number(produto.estoque) <= 0)) {
       throw erroPedido(400, "Produto inválido ou indisponível no pedido.");
     }
     const quantidade = Math.max(1, Math.min(20, Math.trunc(Number(recebido.quantidade) || 1)));
@@ -613,7 +620,8 @@ function calcularPedidoPublico(body) {
 
   if (premio && premio.tipo === "produto_gratis") {
     const produtoGratis = menu.produtos.find((p) => String(p.id) === String(premio.produtoId));
-    if (!produtoGratis || produtoGratis.disponivel === false) {
+    if (!produtoGratis || produtoGratis.disponivel === false ||
+        (produtoGratis.estoque !== undefined && produtoGratis.estoque !== null && produtoGratis.estoque !== "" && Number(produtoGratis.estoque) <= 0)) {
       throw erroPedido(409, "Produto do prêmio não está disponível.");
     }
     itens.push({
@@ -1120,7 +1128,7 @@ function concederGiroPorPedidoEntregue(pedido) {
 app.get("/api/health", (req, res) => {
   res.json({
     ok: true,
-    versao: "1.6.0",
+    versao: "1.7.4",
     ts: Date.now(),
   });
 });
